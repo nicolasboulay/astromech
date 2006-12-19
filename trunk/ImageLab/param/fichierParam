@@ -1,0 +1,9 @@
+ImageLab
+modeWebcam=non
+nomFichierImage=img/capture.bmp
+couleur=jaune minHue=10 maxHue=10 minSat=10 maxSat=10 minLight=10 maxLight=10
+couleur=rouge minHue=10 maxHue=10 minSat=10 maxSat=10 minLight=10 maxLight=10
+couleur=bleu minHue=10 maxHue=10 minSat=10 maxSat=10 minLight=10 maxLight=10
+couleur=vert minHue=10 maxHue=10 minSat=10 maxSat=10 minLight=10 maxLight=10
+calibration
+balanceBlancs
