@@ -7,7 +7,7 @@ using namespace std;
 class video_t{
 public:
   video_t(const string &  s);
-  video_t(void) : file_name(NULL), fd(NULL) {};
+  video_t(void) : file_name(NULL), fd(-1) {};
   int set (int width_, int height_, int framerate_,
        int brightness_,  int colour_, int contrast_,
        int whiteness_, int palette_, int agc_);
