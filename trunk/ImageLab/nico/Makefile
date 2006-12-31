@@ -7,11 +7,11 @@ LDFLAGS= -lm -lpthread -lX11
 CFLAGSHEADER = -I/usr/X11R6/include  -L/usr/X11R6/lib
 
 SOURCES = \
-./tutorial.cpp            \
+./fps.cpp            \
 ./video.cpp               
 
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=tut
+EXECUTABLE=fps
 
 #.SILENT:
 
