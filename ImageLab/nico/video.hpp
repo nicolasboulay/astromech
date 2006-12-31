@@ -1,6 +1,8 @@
 #ifndef VIDEO_CPP
 #define VIDEO_CPP
 #include <string>
+#include <linux/types.h> // miss insinde videodev2 !!
+#include <linux/videodev2.h>
 
 using namespace std; 
 
