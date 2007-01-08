@@ -73,6 +73,16 @@ void video_t::_open(const string & s)
     exit (EXIT_FAILURE);
   }
 
+  /* Get frame */
+  mm.frame  = 0;
+  mm.height = height;
+  mm.width  = width;
+  mm.format = VIDEO_PALETTE_YUV420P;
+  if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
+    perror ("VIDIOCMCAPTURE");
+    exit (EXIT_FAILURE);
+  }
+
 }
 
 int video_t::set (int width_, int height_, int framerate_,
@@ -161,24 +171,20 @@ CImg<unsigned char> & video_t::grab_frame(void)
 
   mm.format = VIDEO_PALETTE_YUV420P;
 
-  /* Get frame */
-  if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
-    perror ("VIDIOCMCAPTURE");
-    exit (EXIT_FAILURE);
-  }
-
   /* Wait frame to be completed */
   if (ioctl(fd, VIDIOCSYNC, &mm.frame) < 0) {
     perror ("VIDIOCSYNC");
     exit (EXIT_FAILURE);
     }
 
-  //unsigned char * rgb 
-  //  = (unsigned char *)malloc(width*height*3*sizeof(unsigned char));
   yuv420P_to_rgb24(framebuf,*img[0]);
 
-  //  img[0]->assign(rgb,height,width);
-  //free (rgb);
+  /* Get frame */
+  if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
+    perror ("VIDIOCMCAPTURE");
+    exit (EXIT_FAILURE);
+  }
+
   return * img[0];
 }
 
@@ -284,7 +290,7 @@ void video_t::yuv420P_to_rgb24(unsigned char * yuv,
   cimg_mapXY(rgb,w,h) 
     { 
       unsigned char YUV[3];
-      yuv420p_get(yuv,YUV,h,w);
+      yuv420p_get(yuv,YUV,w,h);
       unsigned char RGB[3];
       YUV444toRGB888(YUV[0],YUV[1],YUV[2],RGB);
       rgb(w,h,0)=RGB[0];
