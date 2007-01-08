@@ -14,18 +14,18 @@ int main(int argc,char **argv) {
   // Read image filename from the command line (or set it to 
   //  "img/parrot_original.ppm" if option '-i' is not provided).
   const char* file_i 
-    = cimg_option("-i","img/parrot_original.ppm","Input image");
+    = cimg_option("-i","../capture.bmp","Input image");
+
+  const char * video_i
+    = cimg_option("-d","/dev/video","Input device");
 
   // Load an image, transform it to a color image (if necessary)
-  CImg<unsigned char> image[2];
-
-  image[0] = CImg<>(file_i).normalize(0,255).resize(-100,-100,1,3);
-  image[1] = CImg<>(file_i).normalize(0,128).resize(-100,-100,1,3);
+  CImg<unsigned char> image= CImg<>(file_i).normalize(0,128);
 
   
   // Create two display window, one for the image, the other for the color profile.
   CImgDisplay 
-    main_disp(image[0],"Test de vitesse de lecture d'image",0);
+    main_disp(image,"Test de vitesse de lecture d'image",0);
 
   const unsigned char
     red  [3] = {255,  0,  0},
@@ -34,6 +34,7 @@ int main(int argc,char **argv) {
     white[3] = {255,255,255},
     grey [3] = {128,128,128};
 
+    video_t camera(video_i);
     
     int i=0;
   // Enter event loop. This loop ends when one of the two display window is closed.
@@ -43,11 +44,10 @@ int main(int argc,char **argv) {
     // Handle display window resizing (if any)
     if (main_disp.is_resized) main_disp.resize();
 
-    main_disp << image[(i++)%2];
-
+    //main_disp << image[(i++)%2];
+    //camera.grab_frame().display(main_disp);
     float fps = main_disp.frames_per_second();
-
-    CImg<unsigned char>(main_disp.dimx(),main_disp.dimy(),1,3,0)
+    camera.grab_frame()
       .draw_text(15,5,white,0,11,1,"%f fps ",fps)
       .display(main_disp);
 

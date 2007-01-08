@@ -1,6 +1,6 @@
 CC=g++
 SHELL = /bin/sh
-CFLAGSDEBUG=-O0 -Wall -pedantic -W 
+CFLAGSDEBUG=-O0 -Wall -pedantic -W -g
 CFLAGSOPT=-O3 -fomit-frame-pointer -funroll-all-loops
 
 LDFLAGS= -lm -lpthread -lX11 
@@ -18,7 +18,7 @@ EXECUTABLE=fps
 
 all: $(SOURCES) $(EXECUTABLE)
 
-dep : $(SOURCES)
+dep :
 	$(CC) $(CFLAGSHEADER) $(SOURCES) -MM > dep
 
 include dep
