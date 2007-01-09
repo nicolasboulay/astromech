@@ -25,7 +25,7 @@ int main(int argc,char **argv) {
   
   // Create two display window, one for the image, the other for the color profile.
   CImgDisplay 
-    main_disp(image,"Test de vitesse de lecture d'image",0);
+    main_disp(160,120,"Test de vitesse de lecture d'image",1);
 
   const unsigned char
     red  [3] = {255,  0,  0},
@@ -47,6 +47,7 @@ int main(int argc,char **argv) {
     //main_disp << image[(i++)%2];
     //camera.grab_frame().display(main_disp);
     float fps = main_disp.frames_per_second();
+
     camera.grab_frame()
       .draw_text(15,5,white,0,11,1,"%f fps ",fps)
       .display(main_disp);

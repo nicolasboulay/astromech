@@ -16,11 +16,11 @@ using namespace cimg_library;
 video_t::video_t(const std::string &  s)
 
 {
-  height = 120;
-  width  = 160;
+  height = 120;//120
+  width  = 160;//160
   framerate = 60;
-  img[0]= new CImg<unsigned char>(height,width,1,3,100);
-  img[1]= new CImg<unsigned char>(height,width,1,3,0);
+  img[0]= new CImg<unsigned char>(width,height,1,3,100);
+  img[1]= new CImg<unsigned char>(width,height,1,3,0);
 
   video_t::_open(s);
 } 
@@ -28,6 +28,8 @@ video_t::video_t(const std::string &  s)
 video_t::~video_t()
 
 {
+  delete img[0];
+  delete img[1];
   close(fd);
 }
 
