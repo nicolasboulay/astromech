@@ -2,7 +2,7 @@
 #define VIDEO_CPP
 #include "CImg.h"
 #include <string>
-#include <linux/types.h> // miss insinde videodev2 !!
+#include <linux/types.h> // miss inside videodev2 !!
 #include <linux/videodev.h> //drivers video4linux 1.0 deprecated
 #include <linux/videodev2.h> //drivers video4linux 2.0
 using namespace std; 
@@ -17,7 +17,7 @@ public:
   void commit();
   void fetch(void);
   void print_parameter(void);
-  cimg_library::CImg<unsigned char> & grab_frame(void); 
+  cimg_library::CImg<unsigned char> & grab_frame(cimg_library::CImg<unsigned char> & img); 
   unsigned int width;
   unsigned int height;
   int framerate;
@@ -39,11 +39,15 @@ private:
   struct video_mmap       mm;
   cimg_library::CImg<unsigned char> * img[2];
   void _open(const string & s);
-  inline unsigned int clip8(unsigned int i);
+  inline int clip8(int i);
   inline unsigned char * YUV444toRGB888(unsigned int Y,
 					      unsigned int U, 
 					      unsigned int V,
 					      unsigned char ret[3]);
+  inline unsigned char * YUV444toRGB888_true(unsigned int Y, 
+						     unsigned int U, 
+						     unsigned int V,
+					     unsigned char ret[3]);
   inline unsigned char * yuv420p_get(
 					   unsigned char * yuv,
 					   unsigned char ret[3],
