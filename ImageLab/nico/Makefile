@@ -1,6 +1,6 @@
 CC=g++
 SHELL = /bin/sh
-CFLAGSDEBUG= -Wall -pedantic -W -pg
+CFLAGSDEBUG= -Wall -pedantic -W -g
 CFLAGSOPT=-O3 -fomit-frame-pointer -funroll-all-loops
 
 LDFLAGS= -lm -lpthread -lX11 

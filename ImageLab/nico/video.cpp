@@ -18,18 +18,13 @@ video_t::video_t(const std::string &  s)
 {
   height = 120;//120
   width  = 160;//160
-  framerate = 60;
-  img[0]= new CImg<unsigned char>(width,height,1,3,100);
-  img[1]= new CImg<unsigned char>(width,height,1,3,0);
-
+ 
   video_t::_open(s);
 } 
 
 video_t::~video_t()
 
 {
-  delete img[0];
-  delete img[1];
   close(fd);
 }
 
@@ -110,7 +105,6 @@ void video_t::commit()
   
   cam_win.width = width;
   cam_win.height = height;
-  //cam_win.flags = framerate << PWC_FPS_SHIFT; 
   if(ioctl(fd,VIDIOCSWIN,&cam_win) < 0){
     perror("video_t, video_window setting error");
   }
@@ -118,17 +112,12 @@ void video_t::commit()
   struct video_picture cam_control;
   cam_control.palette = palette;
   cam_control.brightness = brightness;
-  //  cam_control.hue = hue;
   cam_control.colour = colour;
   cam_control.contrast = contrast;
   cam_control.whiteness = whiteness;
   if(ioctl (fd, VIDIOCSPICT, &cam_control)<0){
     perror("video_t, video_picture setting error");
   }
-
-  //if(ioctl(fd, VIDIOCPWCSAGC, &agc)<0){
-  //  perror("video_t, agc setting error");
-  //}
 }
 
 void video_t::fetch()
@@ -140,8 +129,6 @@ void video_t::fetch()
   }
   width  = cam_win.width;
   height = cam_win.height;
-  //framerate = cam_win.flags >> PWC_FPS_SHIFT; 
-
 
   struct video_picture cam_control;
   if(ioctl (fd, VIDIOCGPICT, &cam_control)<0){
@@ -149,37 +136,34 @@ void video_t::fetch()
   }
   palette    =cam_control.palette;
   brightness =cam_control.brightness;
-  //  cam_control.hue = hue;
   colour = cam_control.colour;
   contrast = cam_control.contrast;
   whiteness = cam_control.whiteness;
-
-  //if(ioctl(fd, VIDIOCPWCGAGC, &agc)<0){
-  //  perror("video_t, agc getting error");
-  //}
 }
 
 void video_t::print_parameter(void)
 {
-  printf("%ix%i %ifps\n", height, width, framerate);
-
+  printf("%ix%i \n", height, width);
 }
 
-CImg<unsigned char> & video_t::grab_frame(void) 
+CImg<unsigned char> & video_t::grab_frame(CImg<unsigned char> & img) 
 {
   mm.frame  = 0;
   mm.height = height;
   mm.width  = width;
 
   mm.format = VIDEO_PALETTE_YUV420P;
-
+  //  img.resize(width,height);
+  //printf("resize %i %i\n",width,height);
+ 
   /* Wait frame to be completed */
   if (ioctl(fd, VIDIOCSYNC, &mm.frame) < 0) {
     perror ("VIDIOCSYNC");
     exit (EXIT_FAILURE);
     }
 
-  yuv420P_to_rgb24(framebuf,*img[0]);
+
+  yuv420P_to_rgb24(framebuf,img);
 
   /* Get frame */
   if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
@@ -187,44 +171,14 @@ CImg<unsigned char> & video_t::grab_frame(void)
     exit (EXIT_FAILURE);
   }
 
-  return * img[0];
+  return img;
 }
 
+/*
+  stupid convertion mess
 
-/* Go from RGB (red first) to 4:2:0 planar.
- * Note: this requires decimation of the U/V space by 2 in both directions
- * Also, a matrix multiply would be QUITE convenient...
+*/
 
-   This is the matrix:
-     (Y )   ( 77  150   29)   (R)
-     (Cb) = (-43  -85  128) * (G)
-     (Cr)   (128 -107  -21)   (B)
- */
-
-
-//fonction de conversion yuv -> rgb pour affichage
-void video_t::yuv420P_to_rgb24(
-			       unsigned char * yuv, 
-			       unsigned char * rgb, 
-			       const unsigned width, 
-			       const  unsigned height)
-{
-  unsigned int y,u,v,w,h;
-
- for(w=0;w<width;w=w+1)
-   for(h=0; h<height ;h=h+1)
-   {
-     y=w+h*width;
-     u=width*height+(w/2+ (h/2)*(width/2));
-     v=u+(width/2)*(height/2);
-
-     rgb[3*w+h*3*width]=abs(yuv[y] + 1.4075*(yuv[v]-128));
-     rgb[1+3*w+h*3*width]=abs(yuv[y]- 0.344*(yuv[u]-128) - 0.7169*(yuv[v]-128));
-     rgb[2+3*w+h*3*width]=abs(yuv[y]+ 1.779*(yuv[u]-128));
-
-   }
-
-}
 /*
 
 C = Y - 16
@@ -240,14 +194,34 @@ G = clip(( 298 * C - 100 * D - 208 * E + 128) >> 8)
 B = clip(( 298 * C + 516 * D           + 128) >> 8)
 */
 
-inline unsigned int video_t::clip8(unsigned int i)
+inline int video_t::clip8(int i)
 {
-  if (i >= 255)
+  if (i >= 255){
     return 255;
+  } else if (i<=0){
+    return 0;
+  }
   return i;
 }
 
-inline unsigned char * video_t::YUV444toRGB888(unsigned int Y, 
+/*
+  Real formule for yuv -> rgb conversion
+
+  "the defined range for Y is [16,235] (220 steps) and the valid ranges for Cr 
+  and Cb are [16,239] (235 steps) These are normalized ranges and when the 
+  data is used, 16 is added to Y and 128 is added from Cr and Cb to de-normalize 
+  them. The reason for this is that control and colorburst information is stored 
+  in the components along with the luminence and chromiance data which is why 
+  the full range of [0,255] is not used. There is no "rumor" about this being 
+  correct. It is a defined standard for YCrCb video. I wouldn't be surprised if 
+  certain PC programs are using a variant where the entire range of [0,255] is 
+  used but technically it is not YCrCb." http://www.fourcc.org/fccyvrgb.php
+
+  Y     [16,235] for [0.0:1.0]
+  U&V   [16,239] for [-0.5;+0.5]
+*/
+
+inline unsigned char * video_t::YUV444toRGB888_true(unsigned int Y, 
 						     unsigned int U, 
 						     unsigned int V,
 						     unsigned char ret[3])
@@ -260,6 +234,26 @@ inline unsigned char * video_t::YUV444toRGB888(unsigned int Y,
   ret[0] = clip8(( 298 * C           + 409 * E + 128) >> 8);
   ret[1] = clip8(( 298 * C - 100 * D - 208 * E + 128) >> 8);
   ret[2] = clip8(( 298 * C + 516 * D           + 128) >> 8);
+
+  return ret;
+}
+
+/*
+  but webcam use Y[0;244] 
+*/
+inline unsigned char * video_t::YUV444toRGB888(unsigned int Y, 
+						     unsigned int U, 
+						     unsigned int V,
+						     unsigned char ret[3])
+{
+  int C, D, E;
+  C = Y;
+  D = U - 128;
+  E = V - 128;
+
+  ret[0] = clip8(( 266 * C           + 409 * E + 128) >> 8);
+  ret[1] = clip8(( 266 * C - 100 * D - 208 * E + 128) >> 8);
+  ret[2] = clip8(( 266 * C + 516 * D           + 128) >> 8);
 
   return ret;
 }
@@ -280,10 +274,6 @@ inline unsigned char * video_t::yuv420p_get(
 }
 
 
-/*
-B = 1.164(Y - 16)                   + 2.018(U - 128)
-G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
-R = 1.164(Y - 16) + 1.596(V - 128)*/
 
 //fonction de conversion yuv -> rgb pour affichage
 void video_t::yuv420P_to_rgb24(unsigned char * yuv, 
@@ -291,6 +281,7 @@ void video_t::yuv420P_to_rgb24(unsigned char * yuv,
 {
   cimg_mapXY(rgb,w,h) 
     { 
+      fsync(2);
       unsigned char YUV[3];
       yuv420p_get(yuv,YUV,w,h);
       unsigned char RGB[3];
@@ -298,5 +289,6 @@ void video_t::yuv420P_to_rgb24(unsigned char * yuv,
       rgb(w,h,0)=RGB[0];
       rgb(w,h,1)=RGB[1];
       rgb(w,h,2)=RGB[2];
+
     }
 }
