@@ -19,7 +19,7 @@ int main(int argc,char **argv) {
   
   CImgDisplay 
     main_disp(160,120,"Test de vitesse de lecture d'image",1);
-  CImg<unsigned char> image= CImg<>(160,120,3,1,0);
+  CImg<unsigned char> image= CImg<>(160,120,1,3,0);
 
   video_t camera(video_i);
   
@@ -32,8 +32,10 @@ int main(int argc,char **argv) {
     if (main_disp.is_resized) main_disp.resize();
 
     float fps = main_disp.frames_per_second();
-    //draw_text(15,5,white,0,11,1,"%f fps ",fps)
-    camera.grab_frame(image).display(main_disp);
+    //
+    camera.grab_frame(image)
+      .draw_text(15,5,white,0,11,1,"%f fps ",fps)
+      .display(main_disp);
 
     // Temporize event loop
     cimg::wait(1);
