@@ -13,20 +13,53 @@
 
 using namespace cimg_library;
 
-video_t::video_t(const std::string &  s)
+video_t::video_t(const std::string &  s, int h=120, int w=160)
 
 {
-  height = 120;//120
-  width  = 160;//160
- 
+  file_name=s;
+  framebuf=NULL;
   video_t::_open(s);
-} 
-
-video_t::~video_t()
-
-{
-  close(fd);
+  getparam();  
+  height = h;
+  width  = w;
+  //close(fd);
+   setmmap();
+  setgrabframe();
+  print_parameter();
 }
+ 
+video_t::~video_t()
+{
+  munmap(framebuf, width * height * 3);
+  close(fd);
+  if(!framebuf) free(framebuf);
+  printf("Close %s\n",file_name.c_str());
+}
+
+cimg_library::CImg<unsigned char> * video_t::factory_img()
+{
+   CImg<unsigned char> * image= new CImg<unsigned char>(width,height,1,3,0);
+
+   return image;
+}
+
+void video_t::reset_cycle()
+{ /*broken !*/
+  //  wait_frame();
+  munmap(framebuf, width * height * 3);
+  if(close(fd)) perror("reset_cyle:");
+  //_open(file_name);
+  // print_parameter();
+}
+
+void video_t::reopen()
+{
+  _open(file_name);
+  setmmap();
+  setgrabframe();
+  print_parameter();
+}
+
 
 void video_t::_open(const string & s) 
 {
@@ -60,26 +93,57 @@ void video_t::_open(const string & s)
   }
 
   printf ("Video Capture Device Name : %s\n", vcap.name);
+  printf ("  %ix%i to %ix%i type=%i\n", 
+	  vcap.minwidth,vcap.minheight,vcap.maxwidth,vcap.maxheight,vcap.type);
+}
+ 
+
+void video_t::setmmap()
+{
 
   /* Mmap frame-buffer */
+  if(!framebuf)  munmap(framebuf, width * height * 3);
   framebuf = (unsigned char*)
     mmap(0, width * height * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-  print_parameter();
   if ((unsigned char *)-1 == (unsigned char *)framebuf) {
     perror ("mmap");
     exit (EXIT_FAILURE);
   }
+}
 
+void video_t::setgrabframe()
+{
   /* Get frame */
   mm.frame  = 0;
   mm.height = height;
   mm.width  = width;
-  mm.format = VIDEO_PALETTE_YUV420P;
-  if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
+  mm.format = palette;
+  if (ioctl(fd, VIDIOCMCAPTURE, &(mm.frame)) < 0) {
     perror ("VIDIOCMCAPTURE");
     exit (EXIT_FAILURE);
   }
+}
 
+void video_t::wait_frame()
+{
+  mm.frame  = 0;
+  mm.height = height;
+  mm.width  = width;
+
+  mm.format = palette;
+
+  /* Wait frame to be completed */
+  if (ioctl(fd, VIDIOCSYNC, &mm) < 0) {
+    perror ("VIDIOCSYNC");
+    exit (EXIT_FAILURE);
+    }
+}
+
+/*to change size setting*/
+void video_t::resetmmap()
+{
+  wait_frame();
+  setmmap();
 }
 
 int video_t::set (int width_, int height_, int framerate_,
@@ -118,9 +182,18 @@ void video_t::commit()
   if(ioctl (fd, VIDIOCSPICT, &cam_control)<0){
     perror("video_t, video_picture setting error");
   }
+  resetmmap();
+  setgrabframe();
+  getparam();
 }
 
-void video_t::fetch()
+void video_t::print_parameter()
+{
+  printf("%ix%i palette=%i brightness=%i colour=%i contrast=%i whiteness=%i\n",
+	 width,height,palette,brightness,colour,contrast,whiteness);
+}
+
+void video_t::getparam()
 {
   struct video_window cam_win;
   
@@ -134,42 +207,19 @@ void video_t::fetch()
   if(ioctl (fd, VIDIOCGPICT, &cam_control)<0){
     perror("video_t, video_picture getting error");
   }
-  palette    =cam_control.palette;
-  brightness =cam_control.brightness;
-  colour = cam_control.colour;
-  contrast = cam_control.contrast;
-  whiteness = cam_control.whiteness;
-}
-
-void video_t::print_parameter(void)
-{
-  printf("%ix%i \n", height, width);
+  palette    = cam_control.palette;
+  brightness = cam_control.brightness;
+  colour     = cam_control.colour;
+  contrast   = cam_control.contrast;
+  whiteness  = cam_control.whiteness;
 }
 
 CImg<unsigned char> & video_t::grab_frame(CImg<unsigned char> & img) 
 {
-  mm.frame  = 0;
-  mm.height = height;
-  mm.width  = width;
 
-  mm.format = VIDEO_PALETTE_YUV420P;
-  //  img.resize(width,height);
-  //printf("resize %i %i\n",width,height);
- 
-  /* Wait frame to be completed */
-  if (ioctl(fd, VIDIOCSYNC, &mm.frame) < 0) {
-    perror ("VIDIOCSYNC");
-    exit (EXIT_FAILURE);
-    }
-
-
+  wait_frame();
   yuv420P_to_rgb24(framebuf,img);
-
-  /* Get frame */
-  if (ioctl(fd, VIDIOCMCAPTURE, &mm) < 0) {
-    perror ("VIDIOCMCAPTURE");
-    exit (EXIT_FAILURE);
-  }
+  setgrabframe();
 
   return img;
 }

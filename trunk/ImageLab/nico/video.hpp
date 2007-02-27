@@ -9,14 +9,21 @@ using namespace std;
 
 class video_t{
 public:
-  video_t(const std::string &  s);
+  video_t(const std::string &  s, int h, int w);
   ~video_t();
   int set (int width_, int height_, int framerate_,
        int brightness_,  int colour_, int contrast_,
        int whiteness_, int palette_, int agc_);
   void commit();
-  void fetch(void);
+  void getparam();
+  void reopen();
   void print_parameter(void);
+  void setmmap();
+  void wait_frame();
+  void setgrabframe();
+  void resetmmap();
+  void reset_cycle();
+  cimg_library::CImg<unsigned char> * factory_img();
   cimg_library::CImg<unsigned char> & grab_frame(cimg_library::CImg<unsigned char> & img); 
   unsigned int width;
   unsigned int height;
