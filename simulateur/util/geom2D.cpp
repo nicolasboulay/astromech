@@ -43,11 +43,11 @@ Point2D::Point2D(TiXmlElement* pPt)
   pElt = handlePt.FirstChild("x").Element(); 
   istringstream issx( pElt->GetText() );
   issx >> x;
-  cout << "x "<<issx.str() <<endl;
+  //cout << "x "<<issx.str() <<endl;
   pElt = handlePt.FirstChild("y").Element();
   istringstream issy( pElt->GetText() );
   issy >> y;
-  cout << "y "<<issy.str() <<endl;
+  //cout << "y "<<issy.str() <<endl;
 }
 Point2D::Point2D(double a, double b)
 {
@@ -55,7 +55,7 @@ Point2D::Point2D(double a, double b)
   y = b;
   nbPtCrees++;
   nbPtPresents++;
-  cout << "create Pt2D " <<this <<"nbPtCrees "<<nbPtCrees<< endl;
+  //cout << "create Pt2D " <<this <<"nbPtCrees "<<nbPtCrees<< endl;
 }
 Point2D::Point2D(Point2D * pt)
 {
@@ -63,12 +63,12 @@ Point2D::Point2D(Point2D * pt)
   this->y = pt->y;
   nbPtCrees++;
   nbPtPresents++;
-  cout << "create Pt2D " <<this <<"nbPtCrees "<<nbPtCrees<<endl;
+  //cout << "create Pt2D " <<this <<"nbPtCrees "<<nbPtCrees<<endl;
 }
 Point2D::~Point2D(void)
 {
   nbPtPresents--;
-  cout << "delete Pt2D " <<this <<"nbPtsPresents "<<nbPtPresents<< endl;
+  //cout << "delete Pt2D " <<this <<"nbPtsPresents "<<nbPtPresents<< endl;
 }
 double Point2D::distanceAuPoint(Point2D * pt)
 {
@@ -199,7 +199,140 @@ Segment2D * Segment2D::creeSegmentRT(Point2D * centreGraviteRT, double * att_rad
   newSegment = new Segment2D(newpt1,newpt2);
   return newSegment;
 }
+int Segment2D::CalculePointJonctionDilate(Segment2D * seg2, double dilatation_m,Point2D * ptDilate1, Point2D * ptDilate2)
+{ 
 
+  if ((seg2!=NULL)&&(ptDilate1!=NULL)&&(ptDilate2!=NULL))
+  {
+    Point2D *pt1 = this->pt1;
+    Point2D *pt2 = this->pt2;
+    Point2D *pt3 = seg2->pt2;
+    double capPt2VersPt1 = pt2->calculeCap_rad(pt1);
+    double capPt2VersPt3 = pt2->calculeCap_rad(pt3);
+    double angleExterieur_rad = capPt2VersPt3 - capPt2VersPt1;
+    normalise0_2PI(angleExterieur_rad);
+    double distancePt2PtDilate;
+    double capDilatation_rad;
+    if (angleExterieur_rad <= 3*M_PI/2)
+    {
+      /* dilatation : un seul point suffit*/
+      distancePt2PtDilate = dilatation_m/sin(angleExterieur_rad/2);
+      capDilatation_rad = capPt2VersPt1 + angleExterieur_rad/2;
+      normalise0_2PI(capDilatation_rad);
+      ptDilate1->x = pt2->x + distancePt2PtDilate*sin(capDilatation_rad);
+      ptDilate1->y = pt2->y + distancePt2PtDilate*cos(capDilatation_rad);
+      return 1;
+    }
+    else
+    {
+      /* dilatation : 2 pts nécessaires */
+      distancePt2PtDilate = dilatation_m/cos((angleExterieur_rad-M_PI)/4);
+      capDilatation_rad = capPt2VersPt1 + (angleExterieur_rad+M_PI)/4;
+      normalise0_2PI(capDilatation_rad);
+      ptDilate1->x = pt2->x + distancePt2PtDilate*sin(capDilatation_rad);
+      ptDilate1->y = pt2->y + distancePt2PtDilate*cos(capDilatation_rad);
+      
+      //capDilatation_rad += (angleExterieur_rad+M_PI)/2;
+      capDilatation_rad = capPt2VersPt3 - (angleExterieur_rad+M_PI)/4;
+      normalise0_2PI(capDilatation_rad);
+      ptDilate2->x = pt2->x + distancePt2PtDilate*sin(capDilatation_rad);
+      ptDilate2->y = pt2->y + distancePt2PtDilate*cos(capDilatation_rad);
+      return 2;
+    }
+  }
+  else
+  {
+    return -1;
+  }
+}
+int Segment2D::TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2D * ptInter)
+{
+  //retourne 0 si pas intersection, 1 si intersection, -1 si erreur.
+  Point2D *pt1;
+  Point2D *pt2;
+  Point2D *pt3;
+  Point2D *pt4;
+  
+  pt1 = this->pt1;
+  pt2 = this->pt2;
+  pt3 = seg2->pt1;
+  pt4 = seg2->pt2;
+  
+  ptInter->x = 0.0;
+  ptInter->y = 0.0;
+  
+  //test de rejet rapide (vérif de l'intersection des boites englobantes
+  if(!(   max(pt1->x,pt2->x)>=min(pt3->x,pt4->x)
+       && max(pt3->x,pt4->x)>=min(pt1->x,pt2->x)
+       && max(pt1->y,pt2->y)>=min(pt3->y,pt4->y)
+       && max(pt3->y,pt4->y)>=min(pt1->y,pt2->y)
+       ))
+  {
+    return 0;
+  }
+  
+  //test complet car les boites intersectent
+  double z1 = (pt3->x - pt1->x)*(pt2->y - pt1->y) - (pt3->y - pt1->y)*(pt2->x - pt1->x);
+  double z2 = (pt4->x - pt1->x)*(pt2->y - pt1->y) - (pt4->y - pt1->y)*(pt2->x - pt1->x);
+  double z3 = (pt1->x - pt3->x)*(pt4->y - pt3->y) - (pt1->y - pt3->y)*(pt4->x - pt3->x);
+  double z4 = (pt2->x - pt3->x)*(pt4->y - pt3->y) - (pt2->y - pt3->y)*(pt4->x - pt3->x);
+  
+  int s1 = 0;
+  int s2 = 0;
+  int s3 = 0;
+  int s4 = 0;
+  
+  if (z1 < 0){s1 = -1;} else if (z1>0) {s1 = 1;} else {s1 = 0;}
+  if (z2 < 0){s2 = -1;} else if (z2>0) {s2 = 1;} else {s2 = 0;}
+  if (z3 < 0){s3 = -1;} else if (z3>0) {s3 = 1;} else {s3 = 0;}
+  if (z4 < 0){s4 = -1;} else if (z4>0) {s4 = 1;} else {s4 = 0;}
+  
+  if ((s1*s2<=0)&&(s3*s4<=0))
+  {
+    if (calculeIntersection)
+    {
+      if ((s1==0)&&(s2==0)&&(s3==0)&&(s4==0))
+      {
+        //infinité de points d'intersection
+	//on choisit le point4
+	ptInter->x = pt4->x;
+	ptInter->y = pt4->y;
+      }
+      else
+      {
+        //on doit renseigner le point d'intersection
+        //resolution du systeme A1.x+B1.y=C1
+        //                      A2.x+B2.y=C2
+        double A1 = pt1->y - pt2->y;
+        double B1 = pt2->x - pt1->x;
+        double A2 = pt3->y - pt4->y;
+        double B2 = pt4->x - pt3->x;
+        double C1 = pt1->x*A1 + pt1->y*B1;
+        double C2 = pt3->x*A2 + pt3->y*B2;
+        double invDeterminant = 1/(A1*B2-B1*A2);
+      
+        //reste à résoudre (X Y) = invA * (C1 C2)
+        ptInter->x = invDeterminant * ( C1*B2 - B1*C2);
+        ptInter->y = invDeterminant * (-A2*C1 + A1*C2);
+      }
+     /* if (ptInter->x != ptInter->x)
+      {
+        cout <<"z1"<<z1<<"z2"<<z2<<"z3"<<z3<<"z4"<<z4<<endl;
+	cout <<"A1"<<A1<<"B1"<<B1<<"A2"<<A2<<"B2"<<B2<<"C1"<<C1<<"C2"<<C2<<endl;
+	cout <<"pt1 "<<pt1->x<<" "<<pt1->y<<endl;
+	cout <<"pt2 "<<pt2->x<<" "<<pt2->y<<endl;
+	cout <<"pt3 "<<pt3->x<<" "<<pt3->y<<endl;
+	cout <<"pt4 "<<pt4->x<<" "<<pt4->y<<endl;
+      }*/
+      
+    }
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
 /*************************************************************************/
 /*                                  Boite2D                              */
 /*************************************************************************/

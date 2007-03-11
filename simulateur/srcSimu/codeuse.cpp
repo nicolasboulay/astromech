@@ -36,6 +36,10 @@ void Codeuse::execute(int tempsCourant_ms)
   trace->print(src,cl,"execute",message);
   
   nbImpulsionComptees = (moteur->getDeltaRot_rad()/(2*M_PI))*nbPointsParTour;
+  if (nbImpulsionComptees<0)
+  {
+    nbImpulsionComptees = -nbImpulsionComptees;
+  }
   log << tempsCourant_ms <<"\t"<< nbImpulsionComptees << endl;
   
   message = "fin";

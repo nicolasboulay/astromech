@@ -103,10 +103,10 @@ int Simulation::chargerXML(TiXmlDocument & doc)
     tabSysteme.push_back(sys);
   }
   
-  pElt = docHandle.FirstChild( "Simulation" ).FirstChildElement("fichierObstacle").Element();
+/*  pElt = docHandle.FirstChild( "Simulation" ).FirstChildElement("fichierObstacle").Element();
   string nomFichierObstacle;
   nomFichierObstacle = pElt->GetText();
-  obstacles = new Obstacles(nomFichierObstacle,trace);
+  obstacles = new Obstacles(nomFichierObstacle,trace);*/
   
   message = "fin";
   trace->print(src,cl,"chargerXML",message);

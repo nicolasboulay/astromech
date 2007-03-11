@@ -55,6 +55,8 @@ class Segment2D
     Segment2D(Point2D * pt1, Point2D * pt2);
     ~Segment2D(void);
     Segment2D * creeSegmentRT(Point2D * centreGraviteRT, double * att_rad);
+    int CalculePointJonctionDilate(Segment2D * seg2,double dilatation_m,Point2D * pt1, Point2D * pt2);
+    int TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2D * ptInter);
 };
 
 class Boite2D

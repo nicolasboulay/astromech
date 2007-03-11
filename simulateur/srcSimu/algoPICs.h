@@ -30,6 +30,10 @@ class AlgoPIC : public Algo
     double vitesseConsigneCG_m_par_s;
     int numeroSequenceWP;
     vectorWayPoint listeWPCourante;
+    int sensRotationMoteurDroit;
+    int sensRotationMoteurGauche;
+    double rayonCercleIdealInitialWPenCours;
+    double sommeEcartsAngulaire;
     
     //donnéesXML
     int nbPointsParTourMoteur;
@@ -48,11 +52,15 @@ class AlgoPIC : public Algo
     void chargerXML(TiXmlElement* pModuleXML);
     void connectModules(void);
     void miseAjourNavigation(const double & codeuseMoteurDroit,
-                             const double & codeuseMoteurGauche);
+                             const double & codeuseMoteurGauche,
+			     const int    & sensRotationMoteurDroit,
+		             const int    & sensRotationMoteurGauche);
     void boucleGuidage(vectorWayPoint listeWP,
                 double & consigneVitesseMoteurDroit_rad_s, 
 		double & consigneVitesseMoteurGauche_rad_s);
     void miseAjourWaypoint(vectorWayPoint listeWP);
+    void calculXcentreCercleDansRepereWaypoint(const WayPoint & wpEnCours,
+                                               double & xCentreCercle);
 };
 #endif
 
