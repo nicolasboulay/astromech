@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation>
-<pasTemps_ms>10</pasTemps_ms>
-<duree_s>30</duree_s>
+<pasTemps_ms>20</pasTemps_ms>
+<duree_s>90</duree_s>
 <fichierSysteme>./data/robot1.xml</fichierSysteme>
 <fichierSysteme>./data/element1.xml</fichierSysteme>
 <fichierObstacle>./data/obstacles.xml</fichierObstacle>

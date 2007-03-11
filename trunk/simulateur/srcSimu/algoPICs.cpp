@@ -13,6 +13,8 @@
 #include <math.h>
 using namespace std;
 
+# define RAYON_COURBURE_INFINIE 10000.0
+
 AlgoPIC::AlgoPIC(Systeme *s,Trace * t):Algo(s,t)
 {
   trace = t;
@@ -24,6 +26,9 @@ AlgoPIC::AlgoPIC(Systeme *s,Trace * t):Algo(s,t)
   vitesseConsigneCG_m_par_s = 0;
   numeroSequenceWP = -1;
   positionAttVit = new WayPoint(0,0,0,0);
+  sensRotationMoteurDroit = 1;
+  sensRotationMoteurGauche = 1;
+  rayonCercleIdealInitialWPenCours = 1;
 
   message = "fin";
   trace->print(src,cl,"AlgoPIC",message);
@@ -101,18 +106,39 @@ void AlgoPIC::execute(int tempsCourant_ms)
   double codeuseMoteurGauche = codeuseGauche->getNbImpulsions();
   
   //mise à jour navigation
-  miseAjourNavigation(codeuseMoteurDroit,codeuseMoteurGauche);
+  miseAjourNavigation(codeuseMoteurDroit,
+                      codeuseMoteurGauche,
+		      sensRotationMoteurDroit,
+                      sensRotationMoteurGauche);
   
   //incrémentation du waypoint si le courant est atteint
   miseAjourWaypoint(listeWPCourante);
   
-  //boucle de guidage
+  //boucle de guidage pour vitesse CG non nulle (depend du WP)
   double consigneVitesseMoteurDroit_rad_s = 0;
   double consigneVitesseMoteurGauche_rad_s = 0;
   boucleGuidage(listeWPCourante,
                 consigneVitesseMoteurDroit_rad_s, 
 		consigneVitesseMoteurGauche_rad_s);
-  
+		
+  if (consigneVitesseMoteurDroit_rad_s < 0)
+  {
+    sensRotationMoteurDroit = -1;
+  }
+  else
+  {
+    sensRotationMoteurDroit = 1;
+  }
+ 
+  if (consigneVitesseMoteurGauche_rad_s < 0)
+  {
+    sensRotationMoteurGauche = -1;
+  }
+  else
+  {
+    sensRotationMoteurGauche = 1;
+  }
+ 
   //commande des moteurs
   moteurDroit->setConsigneVitesse(consigneVitesseMoteurDroit_rad_s);
   moteurGauche->setConsigneVitesse(consigneVitesseMoteurGauche_rad_s);
@@ -241,12 +267,17 @@ void AlgoPIC::connectModules(void)
 }
 
 void AlgoPIC::miseAjourNavigation(const double & impCodeuseMoteurDroit,
-                                  const double & impCodeuseMoteurGauche)
+                                  const double & impCodeuseMoteurGauche,
+				  const int    & sensRotationMoteurDroit,
+				  const int    & sensRotationMoteurGauche)
 {
   //(2Pi*R)/(500*36) * NbImp = distance
   double facteurConversion = 2*M_PI*rayonRoues_m/(nbPointsParTourMoteur*rapportReduction);//0.0000175;
-  double deplacementRoueDroite = facteurConversion*impCodeuseMoteurDroit;
-  double deplacementRoueGauche = facteurConversion*impCodeuseMoteurGauche;
+  double deplacementRoueDroite = sensRotationMoteurDroit*facteurConversion*impCodeuseMoteurDroit;
+  double deplacementRoueGauche = sensRotationMoteurGauche*facteurConversion*impCodeuseMoteurGauche;
+
+  //double deplacementRoueDroite = facteurConversion*impCodeuseMoteurDroit;
+  //double deplacementRoueGauche = facteurConversion*impCodeuseMoteurGauche;
 
   double deltaAvance_m = (deplacementRoueDroite + deplacementRoueGauche)/2;
   double new_pos_x_m = positionAttVit->pt->x + deltaAvance_m * sin(positionAttVit->attitude_rad);
@@ -269,6 +300,7 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
   if (numeroWPenCours < listeWP.size())
   {
     wpEnCours = listeWP[numeroWPenCours];
+ 
     Point2D * centreDuCercle = new Point2D(0,0);
     //calcul de la position courante dans le repere du WP en cours
     Point2D * ptCourant = new Point2D(positionAttVit->pt);
@@ -281,9 +313,18 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
     delete ptCourant;
     double capCercleIdeal;
     double xCentreCercle;
+    double rayonCercle;
     if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
     {
       xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot);
+      if (xCentreCercle>=0)
+      {
+        rayonCercle = xCentreCercle;
+      }
+      else
+      {
+        rayonCercle = -xCentreCercle;
+      }
       //Point2D * centreDuCercle = new Point2D(xCentreCercle,0);
       centreDuCercle->x = xCentreCercle;
       centreDuCercle->y = 0;
@@ -364,22 +405,34 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
     
     double deltaV; 
     double vitesseConsigneCG_rad_par_s = vitesseConsigneCG_m_par_s*rapportReduction/rayonRoues_m;
+    double valAbsEcartAngulaire_rad = ecartAngulaire_rad;
+    
+    if (ecartAngulaire_rad<0)
+    {
+      valAbsEcartAngulaire_rad = - ecartAngulaire_rad;
+    }
+      
+    if ( rayonCercleIdealInitialWPenCours >= (ecartEntreRoues_m/2))
+    {   
+      deltaV = vitesseConsigneCG_rad_par_s*(gainCorrectionAngulaire*valAbsEcartAngulaire_rad -1)/(gainCorrectionAngulaire*valAbsEcartAngulaire_rad + 1);
+    }
+    else
+    {
+      deltaV = vitesseConsigneCG_rad_par_s*(3*gainCorrectionAngulaire*valAbsEcartAngulaire_rad +1)/(gainCorrectionAngulaire*valAbsEcartAngulaire_rad + 1);
+    }
     if (ecartAngulaire_rad>0)
     {
-      deltaV = vitesseConsigneCG_rad_par_s*(gainCorrectionAngulaire*ecartAngulaire_rad -1)/(gainCorrectionAngulaire*ecartAngulaire_rad + 1);
       consigneVitesseMoteurGauche_rad_s = vitesseConsigneCG_rad_par_s+deltaV;
       consigneVitesseMoteurDroit_rad_s = vitesseConsigneCG_rad_par_s-deltaV;
     }
     else
     {
-      ecartAngulaire_rad *=-1;
-      deltaV = vitesseConsigneCG_rad_par_s*(gainCorrectionAngulaire*ecartAngulaire_rad -1)/(gainCorrectionAngulaire*ecartAngulaire_rad + 1);
       consigneVitesseMoteurDroit_rad_s = vitesseConsigneCG_rad_par_s+deltaV;
       consigneVitesseMoteurGauche_rad_s = vitesseConsigneCG_rad_par_s-deltaV;
     }
     log <<  positionAttVit->attitude_rad<<"\t"<<capCercleIdeal <<"\t"<< ecartAngulaire_rad <<"\t"
         << consigneVitesseMoteurDroit_rad_s<<"\t"<< consigneVitesseMoteurGauche_rad_s<<"\t"<<vitesseConsigneCG_rad_par_s<<"\t"
-	<< distanceCurviligneJusqueWP <<"\t"<< distanceDeceleration <<endl;
+	<< distanceCurviligneJusqueWP <<"\t"<< distanceDeceleration <<"\t"<<sommeEcartsAngulaire<<endl;
     delete centreDuCercle;
   }
   else
@@ -398,10 +451,73 @@ void AlgoPIC::miseAjourWaypoint(vectorWayPoint listeWP)
   {
     wpEnCours = listeWP[numeroWPenCours];
     double distanceRobot_WPenCours = positionAttVit->pt->distanceAuPoint(wpEnCours->pt);
+    
+    //OU critere de transition sur la distance normale mais attention au waypoint d'entrée de jeu franchi dans ce cas (mais avec un angle incorrect)
+    
+    
     if (distanceRobot_WPenCours < 0.01)
     {
         numeroWPenCours++;
+	if (numeroWPenCours < listeWP.size())
+        {
+	   wpEnCours = listeWP[numeroWPenCours];
+	   double xCentreCercle;
+	   calculXcentreCercleDansRepereWaypoint(*wpEnCours,
+                                                 xCentreCercle);
+		
+		/*
+		//calcul de la position courante dans le repere du WP en cours
+		Point2D * ptCourant = new Point2D(positionAttVit->pt);
+		ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->attitude_rad);
+    
+		//calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
+		double xRobot,yRobot;
+		xRobot = ptCourant->x;
+		yRobot = ptCourant->y;
+		delete ptCourant;
+		
+		if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
+		{
+		xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot);*/
+		if (xCentreCercle>=0)
+		{
+			rayonCercleIdealInitialWPenCours = xCentreCercle;
+		}
+		else
+		{
+			rayonCercleIdealInitialWPenCours = -xCentreCercle;
+		}
+		/*}
+		else
+		{
+		rayonCercleIdealInitialWPenCours = 100000;
+		}*/
+      }
     }
+        
     log << numeroWPenCours <<"\t"<< distanceRobot_WPenCours <<"\t";
   }
 }
+
+void AlgoPIC::calculXcentreCercleDansRepereWaypoint(const WayPoint & wpEnCours,
+                                                    double & xCentreCercle)
+{
+  //calcul de la position courante dans le repere du WP en cours
+  Point2D * ptCourant = new Point2D(positionAttVit->pt);
+  ptCourant->calculePointDansNouveauRepere(wpEnCours.pt,wpEnCours.attitude_rad);
+    
+  //calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
+  double xRobot,yRobot;
+  xRobot = ptCourant->x;
+  yRobot = ptCourant->y;
+  delete ptCourant;
+  if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
+  {
+    xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot); 
+  }
+  else
+  {
+    xCentreCercle = RAYON_COURBURE_INFINIE;
+  }
+}
+

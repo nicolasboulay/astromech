@@ -26,7 +26,7 @@ AR     := ar rc
 RANLIB := ranlib
 
 DEBUG_CFLAGS     := -Wall -Wno-format -g -DDEBUG
-RELEASE_CFLAGS   := -O3 -fomit-frame-pointer
+RELEASE_CFLAGS   := -Wall -Wno-unknown-pragmas -Wno-format -O3
 
 LIBS		 :=
 
@@ -67,7 +67,7 @@ endif
 #****************************************************************************
 
 #INCS := -I/usr/include/g++-2 -I/usr/local/include
-INCS := -Itinyxml -Itrace -Iutil
+INCS := -I/home/pif/simulateur/tinyxml -I/home/pif/simulateur/trace -I/home/pif/simulateur/util
 
 
 #****************************************************************************
@@ -105,7 +105,9 @@ SRCS := \
 	srcSimu/senseur.cpp\
 	srcSimu/contour.cpp\
 	srcSimu/codeuse.cpp\
+	srcSimu/camera.cpp\
 	srcSimu/systeme.cpp\
+	srcSimu/algoPlanifTraj.cpp\
 	srcSimu/obstacles.cpp\
 	srcSimu/main.cpp\
 	tinyxml/tinystr.cpp\
@@ -113,6 +115,7 @@ SRCS := \
 	tinyxml/tinyxmlerror.cpp\
 	tinyxml/tinyxmlparser.cpp\
 	util/geom2D.cpp\
+	util/conversion.cpp\
 	trace/trace.cpp
 
 # Add on the sources for libraries

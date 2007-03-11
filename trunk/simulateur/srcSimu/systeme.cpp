@@ -13,6 +13,7 @@
 #include "chassis.h"
 #include "contour.h"
 #include "codeuse.h"
+#include "camera.h"
 #include "tinyxml.h"
 #include "simulation.h"
 #include "trace.h"
@@ -212,6 +213,12 @@ Module * Systeme::creerModule(string nom_classe)
   {
     Codeuse *c;
     c = new Codeuse(this,trace);
+    return c;
+  }
+  if (nom_classe == "S_Camera")
+  {
+    Camera *c;
+    c = new Camera(this,trace);
     return c;
   }
 
