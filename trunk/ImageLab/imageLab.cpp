@@ -49,7 +49,7 @@ enum nomCouleur{JAUNE,ROUGE,BLEU,VERT};
 struct couleur{
 enum nomCouleur nom;
 int minHue;
-int maxhue;
+int maxHue;
 int minSat;
 int maxSat;
 int minLight;
@@ -293,7 +293,8 @@ int main(int argc,char **argv) {
       }
     } break;
     
-    case 1: {
+    case 1: 
+    {
       // Affichage courbe HSV
       //------------------------
       CImg<float> image;
@@ -417,9 +418,73 @@ int main(int argc,char **argv) {
      } 
     } break;
 
-    case 2: {
-
+    case 2: 
+    {
+      //Affichage couleur seuillée
+      //------------------------
+      CImg<float> imageSeuillee;
+      CImg<float> image;
+      CImg<float> imageH;
+      CImg<float> imageS;
+      CImg<float> imageV;
       
+      if (modeWebcam== false)
+      {
+        cout << "ouverture " <<nomFichierImage<<endl;
+	image = CImg<unsigned char>(nomFichierImage.c_str());
+      }
+      else
+      {
+        //capture image webcam
+      }
+      
+      image.RGBtoHSV();
+      /*image contient maintenant H [0,2*PI],S[0,1], V[0,1]*/
+      /* on va maintenant normaliser chaque composante avant affichage*/
+      imageH = image.get_channel(0);
+      imageS = image.get_channel(1);
+      imageV = image.get_channel(2);
+      
+      const CImgStats statH(imageH,false);
+      const CImgStats statS(imageS,false);
+      const CImgStats statV(imageV,false);
+      
+      imageH.normalize(statH.min*359/(2*cimg::PI),statH.max*359/(2*cimg::PI));
+      imageS.normalize(statS.min*255,statS.max*255);
+      imageV.normalize(statV.min*255,statV.max*255);
+      /*les 3 images contiennent maintenant H [0,359],S[0,255], V[0,255]*/
+      
+      tabCouleur[ROUGE].minHue = 0;
+      tabCouleur[ROUGE].maxHue = 359;
+      tabCouleur[ROUGE].minSat = 10;
+      tabCouleur[ROUGE].maxSat = 255;
+      tabCouleur[ROUGE].minLight = 10;
+      tabCouleur[ROUGE].maxLight = 255;
+      
+      cimg_mapXY(image,x,y) 
+      {
+        if((imageH(x,y)>=tabCouleur[ROUGE].minHue)
+	&& (imageH(x,y)<=tabCouleur[ROUGE].maxHue)
+	&& (imageS(x,y)>=tabCouleur[ROUGE].minSat)
+	&& (imageS(x,y)<=tabCouleur[ROUGE].maxSat)
+	&& (imageV(x,y)>=tabCouleur[ROUGE].minLight)
+	&& (imageV(x,y)<=tabCouleur[ROUGE].maxLight))
+	{
+	  imageSeuillee(x,y) = 255;
+	}
+	else
+	{
+	  imageSeuillee(x,y) = 0;
+	}
+      }
+      
+      CImgDisplay
+      main_dispSeuil(imageSeuillee,"image seuillee",0);
+      
+      while (!main_dispSeuil.is_closed)
+      {
+      
+      }
     } break;
 
     case 3: {
