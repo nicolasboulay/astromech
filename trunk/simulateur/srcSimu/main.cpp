@@ -3,7 +3,9 @@
 #include "algoPlanifTraj.h"
 #include "trace.h"
 #include "geom2D.h"
+#include "bit.h"
 #include <math.h>
+#include <string.h>
 using namespace std;
 int main()
 {
@@ -23,7 +25,7 @@ int main()
          s->run();
        }
      }
-     //delete(a);
+          //delete(a);
      delete(s);
      return 0;   
 }

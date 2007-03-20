@@ -1,5 +1,5 @@
-#ifndef ObstaclesH
-#define ObstaclesH
+#ifndef ObstacleH
+#define ObstacleH
 
 #include <iostream> 
 #include <fstream>
@@ -18,27 +18,26 @@ typedef vector<Segment2D *> vectorSegment2D;
 typedef vector<Point2D *> vectorpoint2D;
 typedef vector<int> vectorInt;
 
-class Obstacles
+class Obstacle
 {
   protected: //accessible uniquement par héritage
-    Trace * trace;
-    string src;
-    string cl;
-    string message;
-    vectorSegment2D tabSegments;
+    Point2D * centreObstacle;
+    double rayonObstacle_m;
     
   public : // accessible partout
     //Obstacles(string fichierObstacles, Trace * t);
-    Obstacles(vectorSegment2D tabSegments, Trace * t);
-    Obstacles(TiXmlElement* pObs, Trace * t);
-    ~Obstacles(void);
+    Obstacle(double xCentreObstacle_m,
+              double yCentreObstacle_m,
+	      double rayonObstacle_m);
+    Obstacle(TiXmlElement* pObs);
+    ~Obstacle(void);
     int chargerXML(TiXmlElement* pObs);
-    Obstacles* dilateObstacle(double dilatation_m);
+    /*Obstacles* dilateObstacle(double dilatation_m);
     Obstacles* autoFusion(void);
     int FusionneAvecObstacle(Obstacles* obs);
     void dumpObstacle(void);
     void dumpObstacleFormatExcel(void);
-    bool pointInPolygon(Point2D *ptATester); 
+    bool pointInPolygon(Point2D *ptATester); */
 
 };
 #endif

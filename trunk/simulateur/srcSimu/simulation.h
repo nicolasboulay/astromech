@@ -12,7 +12,7 @@ class Module;
 class Systeme;
 class TiXmlDocument;
 class Trace;
-class Obstacles;
+class Obstacle;
 
 typedef vector<Systeme*> vectorSysteme;
 typedef vector<Module*> vectorModule;
@@ -30,7 +30,7 @@ class Simulation
     vectorModule tabSenseurs;
     vectorModule tabAlgos;
     vectorModule tabEffecteurs;
-    Obstacles * obstacles;
+    Obstacle * obstacle;
     
     int chargerXML(TiXmlDocument & doc);
     

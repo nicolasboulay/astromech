@@ -15,7 +15,8 @@ class ComSeriePC_PIC;
 class Moteur;
 class Codeuse;
 class WayPoint;
-typedef vector<WayPoint *> vectorWayPoint;
+class TramePC_PIC;
+class TramePIC_PC;
 
 class AlgoPIC : public Algo
 {
@@ -25,15 +26,33 @@ class AlgoPIC : public Algo
     Codeuse * codeuseGauche;
     Moteur * moteurDroit;
     Moteur * moteurGauche;
-    WayPoint * positionAttVit;
-    int numeroWPenCours;
+    
+    TramePC_PIC * trameRecue;
+    TramePIC_PC * trameEnvoyee;
+    
+    signed int     s32_POS_X_ROBOT_um; //um = µm = microm
+    signed int     s32_POS_Y_ROBOT_um;
+    unsigned short u16_CAP_ROBOT_100eme_deg;
+    unsigned short u16_VIT_ROBOT_mm_par_s;
+    
+    unsigned char  numeroWPenCours;
+    signed int     s32_POS_X_WP_um;
+    signed int     s32_POS_Y_WP_um;
+    unsigned short u16_CAP_WP_100eme_deg;
+    unsigned short u16_VIT_WP_mm_par_s;
+    unsigned char  u8_CTRL_WP;
+    
+    float          u64_CARRE_DIST_ROBOT_WP;
+    
+    
     double vitesseConsigneCG_m_par_s;
-    int numeroSequenceWP;
-    vectorWayPoint listeWPCourante;
+
     int sensRotationMoteurDroit;
     int sensRotationMoteurGauche;
     double rayonCercleIdealInitialWPenCours;
     double sommeEcartsAngulaire;
+    bool wayPointConnu;
+    
     
     //donnéesXML
     int nbPointsParTourMoteur;
@@ -55,12 +74,15 @@ class AlgoPIC : public Algo
                              const double & codeuseMoteurGauche,
 			     const int    & sensRotationMoteurDroit,
 		             const int    & sensRotationMoteurGauche);
-    void boucleGuidage(vectorWayPoint listeWP,
-                double & consigneVitesseMoteurDroit_rad_s, 
-		double & consigneVitesseMoteurGauche_rad_s);
-    void miseAjourWaypoint(vectorWayPoint listeWP);
-    void calculXcentreCercleDansRepereWaypoint(const WayPoint & wpEnCours,
-                                               double & xCentreCercle);
+    void boucleGuidage(double & consigneVitesseMoteurDroit_rad_s, 
+		       double & consigneVitesseMoteurGauche_rad_s);
+    void miseAjourWaypoint(void);
+    void calculXcentreCercleDansRepereWaypoint(const WayPoint * wpEnCours, double & xCentreCercle);
+					       
+    float carreDistanceEuclidienne(float x1,
+                                          float y1,
+				          float x2,
+				          float y2);
 };
 #endif
 

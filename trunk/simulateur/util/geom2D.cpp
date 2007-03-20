@@ -17,7 +17,11 @@ double min(double x, double y)
   else
   {return x;}
 }
-
+void normalise0_360_100eme_deg(double & angle_deg)
+{
+  while (angle_deg < 0){angle_deg+=36000;}
+  while (angle_deg >= 36000){angle_deg-=36000;}
+}
 void normalise0_2PI(double & angle_rad)
 {
   while (angle_rad < 0){angle_rad+=2*M_PI;}
@@ -184,7 +188,7 @@ Segment2D::Segment2D(Point2D * ptA, Point2D * ptB)
 
 Segment2D::~Segment2D(void)
 {
-  cout << "delete Seg2D" << endl;
+  //cout << "delete Seg2D" << endl;
   delete (pt1);
   delete (pt2);
 }
@@ -421,11 +425,12 @@ bool Boite2D::IntersectionAvecBoite(Boite2D * boite)
 /*************************************************************************/
 /*                                WayPoint                               */
 /*************************************************************************/
-WayPoint::WayPoint(double x_m, double y_m, double att_rad, double vitesse)
+WayPoint::WayPoint(double x_m, double y_m, double cap_en_deg, double vitesse)
 {
   pt = new Point2D(x_m,y_m);
-  attitude_rad = att_rad;
+  cap_deg = cap_en_deg;
   vitesse_m_par_s = vitesse;
+  controlByte = 0;
 }
 WayPoint::WayPoint(TiXmlElement* pWP)
 {
@@ -439,13 +444,13 @@ WayPoint::WayPoint(TiXmlElement* pWP)
   
   pElt = handleWP.FirstChild("cap_deg").Element(); 
   istringstream iss1( pElt->GetText() );
-  iss1 >> this->attitude_rad;
-  this->attitude_rad *=M_PI/180;
-  cout << "attitude_deg "<<iss1.str() <<endl;
+  iss1 >> this->cap_deg;
+  cout << "cap_deg "<<iss1.str() <<endl;
   pElt = handleWP.FirstChild("vit_m_par_s").Element();
   istringstream iss2( pElt->GetText() );
   iss2 >> this->vitesse_m_par_s;
   cout << "vitesse_m_par_s "<<iss2.str() <<endl;
+  controlByte = 0;
 }
 
 WayPoint::~WayPoint(void)
@@ -456,7 +461,7 @@ WayPoint* WayPoint::operator =(WayPoint* wp)
 {
   if (wp == this) return this;
   this->pt = new Point2D(wp->pt->x,wp->pt->y);
-  this->attitude_rad    = wp->attitude_rad;
+  this->cap_deg    = wp->cap_deg;
   this->vitesse_m_par_s = wp->vitesse_m_par_s;
   return this;
 }

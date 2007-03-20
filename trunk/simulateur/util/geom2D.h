@@ -12,6 +12,7 @@ typedef vector<Segment2D *> vectorSegment2D;
 
 double max(double x, double y);
 double min(double x, double y);
+void normalise0_360_100eme_deg(double & angle_deg);
 void normalise0_2PI(double & angle_rad);
 void normaliseMPI_PPI(double & angle_rad);
 
@@ -82,9 +83,10 @@ class WayPoint
      
   public : // accessible partout
   Point2D * pt;
-  double attitude_rad;
+  double cap_deg;
   double vitesse_m_par_s;
-  WayPoint(double x_m, double y_m, double att_rad, double vitesse_m_par_s);
+  unsigned char controlByte;
+  WayPoint(double x_m, double y_m, double cap_en_deg, double vitesse_m_par_s);
   WayPoint(TiXmlElement* pWP);
   ~WayPoint(void);
   WayPoint* operator = (WayPoint* wp);

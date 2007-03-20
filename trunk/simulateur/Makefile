@@ -67,8 +67,8 @@ endif
 #****************************************************************************
 
 #INCS := -I/usr/include/g++-2 -I/usr/local/include
-INCS := -I/home/pif/simulateur/tinyxml -I/home/pif/simulateur/trace -I/home/pif/simulateur/util
-
+#INCS := -I/home/pif/simulateur/tinyxml -I/home/pif/simulateur/trace -I/home/pif/simulateur/util
+INCS := -I./tinyxml -I./trace -I./util
 
 #****************************************************************************
 # Makefile code common to all platforms
@@ -116,6 +116,7 @@ SRCS := \
 	tinyxml/tinyxmlparser.cpp\
 	util/geom2D.cpp\
 	util/conversion.cpp\
+	util/bit.cpp\
 	trace/trace.cpp
 
 # Add on the sources for libraries
