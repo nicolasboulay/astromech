@@ -50,7 +50,7 @@ Simulation::~Simulation(void)
     delete(*it);
   }
   
-  delete (obstacles);
+  delete (obstacle);
   
   message = "fin";
   tabSysteme.clear();
@@ -138,7 +138,11 @@ void Simulation::run(void)
   Module *m;
   int finSimu_ms = dureeSimu_s*1000;
   int compteurTemps_ms;
-  
+  cout <<"**********************************************************************\n";
+  cout <<"*                                                                    *\n";
+  cout <<"*                        DEBUT SIMULATION                            *\n";
+  cout <<"*                                                                    *\n";
+  cout <<"**********************************************************************\n";
   for (compteurTemps_ms = 0;compteurTemps_ms<=finSimu_ms;compteurTemps_ms+=pasTemps_ms)
   {
     ostringstream oss;
@@ -162,6 +166,12 @@ void Simulation::run(void)
       m->execute(compteurTemps_ms);
     }
   }
+  
+  cout <<"**********************************************************************\n";
+  cout <<"*                                                                    *\n";
+  cout <<"*                        FIN SIMULATION                              *\n";
+  cout <<"*                                                                    *\n";
+  cout <<"**********************************************************************\n";
   message = "fin";
   trace->print(src,cl,"run",message);
 }

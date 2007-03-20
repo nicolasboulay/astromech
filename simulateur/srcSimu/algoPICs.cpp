@@ -10,6 +10,7 @@
 #include "effecteur.h"
 #include "moteur.h"
 #include "geom2D.h"
+#include "bit.h"
 #include <math.h>
 using namespace std;
 
@@ -24,12 +25,19 @@ AlgoPIC::AlgoPIC(Systeme *s,Trace * t):Algo(s,t)
   trace->print(src,cl,"AlgoPIC",message);
   numeroWPenCours = 0;
   vitesseConsigneCG_m_par_s = 0;
-  numeroSequenceWP = -1;
-  positionAttVit = new WayPoint(0,0,0,0);
+  
+  trameEnvoyee = new TramePIC_PC();
+  trameRecue = new TramePC_PIC();
+
+  s32_POS_X_ROBOT_um = 0;
+  s32_POS_Y_ROBOT_um = 0;
+  u16_CAP_ROBOT_100eme_deg = 0;
+  u16_VIT_ROBOT_mm_par_s = 0;
   sensRotationMoteurDroit = 1;
   sensRotationMoteurGauche = 1;
   rayonCercleIdealInitialWPenCours = 1;
-
+  u64_CARRE_DIST_ROBOT_WP = 1E15;
+  wayPointConnu = false;
   message = "fin";
   trace->print(src,cl,"AlgoPIC",message);
 }
@@ -39,8 +47,6 @@ AlgoPIC::~AlgoPIC(void)
   message = "debut";
   trace->print(src,cl,"~AlgoPIC",message);
   
-  delete positionAttVit;
-  
   message = "fin";
   trace->print(src,cl,"~AlgoPIC",message);
 }
@@ -48,59 +54,67 @@ AlgoPIC::~AlgoPIC(void)
 void AlgoPIC::execute(int tempsCourant_ms)
 {
   message = "debut";
+  
   trace->print(src,cl,"execute",message);
   log <<  tempsCourant_ms<<"\t";
+  cout <<"****** Execution PIC à t= "<<tempsCourant_ms<<"*************************************************************"<<endl;
+
+  //actions à mener à chaque trame recue
   if (comSerie->tramePC_PIC_recue())
   {
-    TramePC_PIC * trameRecue;
-    trameRecue = comSerie->getTramePC_PIC();
-    cout << "trameRecue "<<trameRecue<<endl;
-    cout << "listeWP "<<&(trameRecue->tabWayPoint)<<endl;
-    //lecture trame et sauvegarde des données en local
-    if (this->numeroSequenceWP!=trameRecue->numeroSequenceWP)
-    {
-      this->numeroSequenceWP = trameRecue->numeroSequenceWP;
-      //on efface la liste des wp precedente
-      vectorWayPoint::iterator it;
-      cout << "taille listeWPC "<<listeWPCourante.size()<<endl;;
-      for (it = listeWPCourante.begin();it!=listeWPCourante.end();++it)
-      {
-        delete(*it);
-      }
-      listeWPCourante.clear();
-      for (int indWP = 0;indWP < trameRecue->tabWayPoint.size();indWP++)
-      {
-        //recopie des wp dans la trame
-        WayPoint * wp = new WayPoint(trameRecue->tabWayPoint[indWP]->pt->x,
-                                     trameRecue->tabWayPoint[indWP]->pt->y,
-				     trameRecue->tabWayPoint[indWP]->attitude_rad,
-				     trameRecue->tabWayPoint[indWP]->vitesse_m_par_s);
-        listeWPCourante.push_back(wp);
-      }
-    }  
-    delete trameRecue;
-    //traitements
+    cout <<"trame PC_PIC_recue"<<endl;
+    comSerie->getTramePC_PIC(trameRecue);
+    cout << trameRecue->tramePC_PICToString();
     
-    //création d'une trame pour le PC
-    TramePIC_PC * trameEnvoyee = new TramePIC_PC();
+    //Mise à jour de la nav si recalage par le PC
+    if (isBitSet(trameRecue->u8_NAV_CTRL,BIT_UPDATE))
+    {
+      s32_POS_X_ROBOT_um = 1000*trameRecue->s16_NEW_POS_X_mm;
+      s32_POS_Y_ROBOT_um = 1000*trameRecue->s16_NEW_POS_Y_mm;
+      u16_CAP_ROBOT_100eme_deg = 100*trameRecue->u16_NEW_CAP_deg;
+    }
+    //Determination du waypoint a appliquer
+    if (numeroWPenCours==trameRecue->u8_NUM_WP1)
+    {
+      s32_POS_X_WP_um = 1000*trameRecue->s16_POS_X_WP1_mm;
+      s32_POS_Y_WP_um = 1000*trameRecue->s16_POS_Y_WP1_mm;
+      u16_CAP_WP_100eme_deg = 100*trameRecue->u16_CAP_WP1_deg;
+      u16_VIT_WP_mm_par_s = 10*trameRecue->u8_VIT_WP1_cm_par_s;
+      u8_CTRL_WP   = trameRecue->u8_CTRL_WP1;
+      wayPointConnu = true;
+    }
+    else if (numeroWPenCours==trameRecue->u8_NUM_WP2)
+    {
+      s32_POS_X_WP_um = 1000*trameRecue->s16_POS_X_WP2_mm;
+      s32_POS_Y_WP_um = 1000*trameRecue->s16_POS_Y_WP2_mm;
+      u16_CAP_WP_100eme_deg = 100*trameRecue->u16_CAP_WP2_deg;
+      u16_VIT_WP_mm_par_s = 10*trameRecue->u8_VIT_WP2_cm_par_s;
+      u8_CTRL_WP   = trameRecue->u8_CTRL_WP2;
+      wayPointConnu = true;
+    }
+    else
+    {
+      //problème: le waypoint en cours ne correspond pas aux waypoints dans la trame
+      cout << "ERREUR: n°WP1:"<<trameRecue->u8_NUM_WP1
+           << " n°WP2:"<<trameRecue->u8_NUM_WP2
+	   << " n°WPenCours:"<<numeroWPenCours<<endl;
+      wayPointConnu = false;
+    }
+    
+    //préparation d'une trame pour le PC
+    trameEnvoyee->s16_POS_X_mm = s32_POS_X_ROBOT_um/1000;
+    trameEnvoyee->s16_POS_Y_mm = s32_POS_Y_ROBOT_um/1000;
+    trameEnvoyee->u16_CAP_deg  = u16_CAP_ROBOT_100eme_deg/100;
+    trameEnvoyee->u8_VITESSE_cm_par_s = u16_VIT_ROBOT_mm_par_s/10;
+    trameEnvoyee->u8_NUM_WP_CRT = numeroWPenCours;
+    trameEnvoyee->u8_MUM_NEXT_WP = trameRecue->u8_NUM_WP2;
     comSerie->sendToPC(trameEnvoyee);
+    cout << trameEnvoyee->tramePIC_PCToString();
   }
-  //code temporaire
- /* vectorWayPoint listeWP;
-  WayPoint * wp1 = new WayPoint(1,1,0,0.3);//coord (1,1) vit 0.3m/s
-  WayPoint * wp2 = new WayPoint(2,2,1.57,0.5);//coord (2,2) vit 1m/s
-  WayPoint * wp3 = new WayPoint(3,2,1.57,0.5);//coord (3,2) vit 1m/s
-  WayPoint * wp4 = new WayPoint(3,0,4.71,0);//coord (3,0) vit 1m/s
-  listeWP.push_back(wp1);
-  listeWP.push_back(wp2);
-  listeWP.push_back(wp3);
-  listeWP.push_back(wp4);*/
-  for (int indWP = 0;indWP < listeWPCourante.size();indWP++)
-      {
-  cout << listeWPCourante[indWP]->pt->x<<endl;
-  cout << listeWPCourante[indWP]->pt->y<<endl;
-  cout << listeWPCourante[indWP]->attitude_rad<<endl;
-  cout << listeWPCourante[indWP]->vitesse_m_par_s<<endl;}
+  else
+  {
+    cout <<"trame PC_PIC non recue"<<endl;
+  }
   //lecture des codeuses
   double codeuseMoteurDroit = codeuseDroite->getNbImpulsions();
   double codeuseMoteurGauche = codeuseGauche->getNbImpulsions();
@@ -111,16 +125,24 @@ void AlgoPIC::execute(int tempsCourant_ms)
 		      sensRotationMoteurDroit,
                       sensRotationMoteurGauche);
   
-  //incrémentation du waypoint si le courant est atteint
-  miseAjourWaypoint(listeWPCourante);
-  
-  //boucle de guidage pour vitesse CG non nulle (depend du WP)
   double consigneVitesseMoteurDroit_rad_s = 0;
   double consigneVitesseMoteurGauche_rad_s = 0;
-  boucleGuidage(listeWPCourante,
-                consigneVitesseMoteurDroit_rad_s, 
-		consigneVitesseMoteurGauche_rad_s);
-		
+  
+  if (wayPointConnu)
+  {
+    //incrémentation du waypoint si le courant est atteint
+    miseAjourWaypoint();
+
+    //boucle de guidage pour vitesse CG non nulle (depend du WP)
+    
+    boucleGuidage(consigneVitesseMoteurDroit_rad_s, 
+		  consigneVitesseMoteurGauche_rad_s);
+  }
+  else
+  {
+    log<<endl;
+  }
+  		
   if (consigneVitesseMoteurDroit_rad_s < 0)
   {
     sensRotationMoteurDroit = -1;
@@ -142,9 +164,7 @@ void AlgoPIC::execute(int tempsCourant_ms)
   //commande des moteurs
   moteurDroit->setConsigneVitesse(consigneVitesseMoteurDroit_rad_s);
   moteurGauche->setConsigneVitesse(consigneVitesseMoteurGauche_rad_s);
-  
-
-  
+ 
   message = "fin";
   trace->print(src,cl,"execute",message);
 }
@@ -207,7 +227,7 @@ void AlgoPIC::chargerXML(TiXmlElement* pModuleXML)
   message = "tempsMiseEnDecel_s : " + iss8.str();
   trace->print(src,cl,"chargerXML",message);
 
-  log <<"t(s)"<<"\t"<<"xR(m)"<<"\t"<<"yR(m)"<<"\t"<<"vR(m/s)"<<"\t"<<"N° WP"<<"\t"<<"dist WP (m)"<<"\t"
+  log <<"t(s)"<<"\t"<<"xR(m)"<<"\t"<<"yR(m)"<<"\t"<<"capR(deg)"<<"\t"<<"vR(m/s)"<<"\t"<<"N° WP"<<"\t"<<"dist WP (m)"<<"\t"
       <<"xCentreCercle(m)"<<"\t"<<"yCentreCercle(m)"<<"\t"<<"directionWP(rad)"<<"\t"
       <<"xRobot/WP(m)"<<"\t"<<"yRobot/WP(m)"<<"\t"<<"Rayon(m)"<<"\t"<<"capRobot(rad)"<<"\t"
       <<"capCercleIdeal(rad)"<<"\t"<<"ecartAngulaire_rad(rad)"<<"\t"
@@ -272,39 +292,61 @@ void AlgoPIC::miseAjourNavigation(const double & impCodeuseMoteurDroit,
 				  const int    & sensRotationMoteurGauche)
 {
   //(2Pi*R)/(500*36) * NbImp = distance
-  double facteurConversion = 2*M_PI*rayonRoues_m/(nbPointsParTourMoteur*rapportReduction);//0.0000175;
-  double deplacementRoueDroite = sensRotationMoteurDroit*facteurConversion*impCodeuseMoteurDroit;
-  double deplacementRoueGauche = sensRotationMoteurGauche*facteurConversion*impCodeuseMoteurGauche;
-
-  //double deplacementRoueDroite = facteurConversion*impCodeuseMoteurDroit;
-  //double deplacementRoueGauche = facteurConversion*impCodeuseMoteurGauche;
-
-  double deltaAvance_m = (deplacementRoueDroite + deplacementRoueGauche)/2;
-  double new_pos_x_m = positionAttVit->pt->x + deltaAvance_m * sin(positionAttVit->attitude_rad);
-  double new_pos_y_m = positionAttVit->pt->y + deltaAvance_m * cos(positionAttVit->attitude_rad);
-  double new_att_rad = positionAttVit->attitude_rad + atan((deplacementRoueGauche - deplacementRoueDroite)/ecartEntreRoues_m);
-  normalise0_2PI(new_att_rad);
+  double facteurConversion = 2*M_PI*rayonRoues_m*1000000/(nbPointsParTourMoteur*rapportReduction);//17.5;
+  double deplacementRoueDroite_um = sensRotationMoteurDroit*facteurConversion*impCodeuseMoteurDroit;
+  double deplacementRoueGauche_um = sensRotationMoteurGauche*facteurConversion*impCodeuseMoteurGauche;
+  cout<<"deplRD "<<deplacementRoueDroite_um<<" deplRG "<<deplacementRoueGauche_um<<endl;
+  
+  double deltaAvance_um = (deplacementRoueDroite_um + deplacementRoueGauche_um)/2;
+  double d_cap_robot_100eme_deg = u16_CAP_ROBOT_100eme_deg;
+  cout <<"u16_CAP_ROBOT_100eme_deg "<<u16_CAP_ROBOT_100eme_deg<<endl;
+  double cap_robot_rad = (d_cap_robot_100eme_deg/100)*3.14/180;
+  cout <<"capRobot_rad "<<cap_robot_rad<<endl;
+  
+  double new_pos_x_um = s32_POS_X_ROBOT_um + deltaAvance_um * sin(cap_robot_rad);
+  double new_pos_y_um = s32_POS_Y_ROBOT_um + deltaAvance_um * cos(cap_robot_rad);
+  double new_cap_100eme_deg = u16_CAP_ROBOT_100eme_deg + (100*180/3.14)*atan((deplacementRoueGauche_um - deplacementRoueDroite_um)/(1000000*ecartEntreRoues_m));
+  cout <<"new_cap_100eme_deg "<<new_cap_100eme_deg<<endl;
+  normalise0_360_100eme_deg(new_cap_100eme_deg);
+  cout <<"new_cap_100eme_deg "<<new_cap_100eme_deg<<endl;
   //mise à jour position
-  positionAttVit->pt->x = new_pos_x_m;
-  positionAttVit->pt->y = new_pos_y_m;
-  positionAttVit->attitude_rad = new_att_rad;
-  positionAttVit->vitesse_m_par_s = (deltaAvance_m/pasTemps_ms)*1000; //100Hz
-  log << new_pos_x_m <<"\t"<< new_pos_y_m <<"\t"<<positionAttVit->vitesse_m_par_s <<"\t";
+  s32_POS_X_ROBOT_um = new_pos_x_um;
+  s32_POS_Y_ROBOT_um = new_pos_y_um;
+  u16_CAP_ROBOT_100eme_deg = new_cap_100eme_deg;
+  u16_VIT_ROBOT_mm_par_s = deltaAvance_um/pasTemps_ms; 
+  
+  double pos_x_out_m = s32_POS_X_ROBOT_um/1E6;
+  double pos_y_out_m = s32_POS_Y_ROBOT_um/1E6;
+  double cap_out_deg = u16_CAP_ROBOT_100eme_deg/1E2;
+  double vit_out_m_par_s = u16_VIT_ROBOT_mm_par_s/1E3;
+  
+  log << pos_x_out_m <<"\t"<< pos_y_out_m <<"\t"<<cap_out_deg <<"\t"<<vit_out_m_par_s<<"\t";
 }
 
-void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
-                double & consigneVitesseMoteurDroit_rad_s, 
-		double & consigneVitesseMoteurGauche_rad_s)
+void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s, 
+		            double & consigneVitesseMoteurGauche_rad_s)
 {
+  //on remet tout en metrique et degres temporairement
+  cout <<"u16_VIT_WP_mm_par_s "<<u16_VIT_WP_mm_par_s<<endl;
   WayPoint * wpEnCours;
-  if (numeroWPenCours < listeWP.size())
-  {
-    wpEnCours = listeWP[numeroWPenCours];
- 
-    Point2D * centreDuCercle = new Point2D(0,0);
-    //calcul de la position courante dans le repere du WP en cours
-    Point2D * ptCourant = new Point2D(positionAttVit->pt);
-    ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->attitude_rad);
+  double d_posx, d_posy, d_cap, d_vit;
+  d_posx = s32_POS_X_WP_um;
+  d_posy = s32_POS_Y_WP_um;
+  d_cap  = u16_CAP_WP_100eme_deg;
+  d_vit  = u16_VIT_WP_mm_par_s;
+  wpEnCours = new WayPoint(d_posx/1000000, d_posy/1000000, d_cap/100, d_vit/1000);
+   
+  WayPoint * positionAttVit;
+  d_posx = s32_POS_X_ROBOT_um;
+  d_posy = s32_POS_Y_ROBOT_um;
+  d_cap  = u16_CAP_ROBOT_100eme_deg;
+  d_vit  = u16_VIT_ROBOT_mm_par_s;
+  positionAttVit = new WayPoint(d_posx/1000000, d_posy/1000000, d_cap/100, d_vit/1000);
+
+  Point2D * centreDuCercle = new Point2D(0,0);
+  //calcul de la position courante dans le repere du WP en cours
+  Point2D * ptCourant = new Point2D(positionAttVit->pt);
+  ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->cap_deg*3.14/180);
     
     //calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
     double xRobot,yRobot;
@@ -330,9 +372,9 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
       centreDuCercle->y = 0;
     	
       //calcul du centre du cercle dans le repere terrain
-      centreDuCercle->calculePointDansRepereTerrain(wpEnCours->pt,wpEnCours->attitude_rad);
+      centreDuCercle->calculePointDansRepereTerrain(wpEnCours->pt,wpEnCours->cap_deg*3.14/180);
       log << centreDuCercle->x <<"\t"<<centreDuCercle->y<<"\t";
-      log <<  wpEnCours->attitude_rad<<"\t"<<xRobot <<"\t"<< yRobot <<"\t"<< xCentreCercle<<"\t";
+      log <<  wpEnCours->cap_deg<<"\t"<<xRobot <<"\t"<< yRobot <<"\t"<< xCentreCercle<<"\t";
 
       //calcul du cap pt Robot / centre Cercle
       double capRobotCentre = positionAttVit->pt->calculeCap_rad(centreDuCercle);
@@ -349,15 +391,17 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
     else
     {
       //ligne droite pour rejoindre le wp
-      capCercleIdeal = wpEnCours->attitude_rad;
+      capCercleIdeal = wpEnCours->cap_deg*3.14/180;
     }
     normalise0_2PI(capCercleIdeal);
-    double ecartAngulaire_rad = capCercleIdeal - positionAttVit->attitude_rad;
+    double ecartAngulaire_rad = capCercleIdeal - positionAttVit->cap_deg*3.14/180;
     normaliseMPI_PPI(ecartAngulaire_rad);
     
     //calcul de la vitesse du centre de gravité du robot
     double distanceCurviligneJusqueWP = 0;
     double distanceDeceleration = 0;
+    cout<<"vitesseConsigneCG_m_par_s "<<vitesseConsigneCG_m_par_s<<endl;
+    cout<<"wpEnCours->vitesse_m_par_s "<<wpEnCours->vitesse_m_par_s<<endl;
     if (vitesseConsigneCG_m_par_s <= wpEnCours->vitesse_m_par_s)
     {
       //il faut accélérer
@@ -413,13 +457,17 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
     }
       
     if ( rayonCercleIdealInitialWPenCours >= (ecartEntreRoues_m/2))
-    {   
+    {
+      cout <<"sens rotation roues identique **** rayon cercle ideal "<<rayonCercleIdealInitialWPenCours<<endl;
       deltaV = vitesseConsigneCG_rad_par_s*(gainCorrectionAngulaire*valAbsEcartAngulaire_rad -1)/(gainCorrectionAngulaire*valAbsEcartAngulaire_rad + 1);
     }
     else
     {
-      deltaV = vitesseConsigneCG_rad_par_s*(3*gainCorrectionAngulaire*valAbsEcartAngulaire_rad +1)/(gainCorrectionAngulaire*valAbsEcartAngulaire_rad + 1);
+      cout <<"sens rotation roues opposé **** rayon cercle ideal "<<rayonCercleIdealInitialWPenCours<<endl;
+      deltaV = vitesseConsigneCG_rad_par_s*(3*gainCorrectionAngulaire*valAbsEcartAngulaire_rad +1)/(gainCorrectionAngulaire*valAbsEcartAngulaire_rad + 1);     
     }
+    cout <<"deltaV "<<deltaV<<endl;
+    cout <<"vitesseConsigneCG_rad_par_s "<<vitesseConsigneCG_rad_par_s<<endl;
     if (ecartAngulaire_rad>0)
     {
       consigneVitesseMoteurGauche_rad_s = vitesseConsigneCG_rad_par_s+deltaV;
@@ -430,87 +478,103 @@ void AlgoPIC::boucleGuidage(vectorWayPoint listeWP,
       consigneVitesseMoteurDroit_rad_s = vitesseConsigneCG_rad_par_s+deltaV;
       consigneVitesseMoteurGauche_rad_s = vitesseConsigneCG_rad_par_s-deltaV;
     }
-    log <<  positionAttVit->attitude_rad<<"\t"<<capCercleIdeal <<"\t"<< ecartAngulaire_rad <<"\t"
+    log <<  positionAttVit->cap_deg<<"\t"<<capCercleIdeal <<"\t"<< ecartAngulaire_rad <<"\t"
         << consigneVitesseMoteurDroit_rad_s<<"\t"<< consigneVitesseMoteurGauche_rad_s<<"\t"<<vitesseConsigneCG_rad_par_s<<"\t"
 	<< distanceCurviligneJusqueWP <<"\t"<< distanceDeceleration <<"\t"<<sommeEcartsAngulaire<<endl;
-    delete centreDuCercle;
-  }
-  else
-  {
-    //plus de WP, il faut arreter le robot
-    consigneVitesseMoteurDroit_rad_s = 0;
-    consigneVitesseMoteurGauche_rad_s = 0;
-    log <<endl;
-  }
-  
-}
-void AlgoPIC::miseAjourWaypoint(vectorWayPoint listeWP)
-{
-  WayPoint * wpEnCours;
-  if (numeroWPenCours < listeWP.size())
-  {
-    wpEnCours = listeWP[numeroWPenCours];
-    double distanceRobot_WPenCours = positionAttVit->pt->distanceAuPoint(wpEnCours->pt);
-    
-    //OU critere de transition sur la distance normale mais attention au waypoint d'entrée de jeu franchi dans ce cas (mais avec un angle incorrect)
-    
-    
-    if (distanceRobot_WPenCours < 0.01)
-    {
-        numeroWPenCours++;
-	if (numeroWPenCours < listeWP.size())
-        {
-	   wpEnCours = listeWP[numeroWPenCours];
-	   double xCentreCercle;
-	   calculXcentreCercleDansRepereWaypoint(*wpEnCours,
-                                                 xCentreCercle);
-		
-		/*
-		//calcul de la position courante dans le repere du WP en cours
-		Point2D * ptCourant = new Point2D(positionAttVit->pt);
-		ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->attitude_rad);
-    
-		//calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
-		double xRobot,yRobot;
-		xRobot = ptCourant->x;
-		yRobot = ptCourant->y;
-		delete ptCourant;
-		
-		if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
-		{
-		xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot);*/
-		if (xCentreCercle>=0)
-		{
-			rayonCercleIdealInitialWPenCours = xCentreCercle;
-		}
-		else
-		{
-			rayonCercleIdealInitialWPenCours = -xCentreCercle;
-		}
-		/*}
-		else
-		{
-		rayonCercleIdealInitialWPenCours = 100000;
-		}*/
-      }
-    }
-        
-    log << numeroWPenCours <<"\t"<< distanceRobot_WPenCours <<"\t";
-  }
+    delete centreDuCercle;  
+    delete wpEnCours;
+    delete positionAttVit;
 }
 
-void AlgoPIC::calculXcentreCercleDansRepereWaypoint(const WayPoint & wpEnCours,
+float AlgoPIC::carreDistanceEuclidienne(float x1,
+                                               float y1,
+				               float x2,
+				               float y2)
+{
+  return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
+}
+void AlgoPIC::miseAjourWaypoint(void)
+{
+  //attention au cas des waypoint "changement de cap" à traiter plus tard
+  float u64_carreDistanceCouranteRobot_WP;
+  u64_carreDistanceCouranteRobot_WP = carreDistanceEuclidienne(s32_POS_X_WP_um,
+                                                               s32_POS_Y_WP_um,
+						               s32_POS_X_ROBOT_um,
+                                                               s32_POS_Y_ROBOT_um);
+  cout <<u64_carreDistanceCouranteRobot_WP<<endl;
+  float carre5cm_um=50000.0*50000.0;
+  cout <<carre5cm_um<<endl;
+  if (u64_carreDistanceCouranteRobot_WP < carre5cm_um) //si distWP<5cm
+  {
+    cout <<"distWP<5cm "<<u64_carreDistanceCouranteRobot_WP<<endl;
+    if (u64_carreDistanceCouranteRobot_WP > u64_CARRE_DIST_ROBOT_WP)
+    {
+      //la dist au WP commence à augmenter: on transitionne
+      numeroWPenCours++;
+      u64_CARRE_DIST_ROBOT_WP = 1E15;
+      if (numeroWPenCours==trameRecue->u8_NUM_WP2)
+      {
+        s32_POS_X_WP_um = trameRecue->s16_POS_X_WP2_mm*1000;
+        s32_POS_Y_WP_um = trameRecue->s16_POS_Y_WP2_mm*1000;
+        u16_CAP_WP_100eme_deg = trameRecue->u16_CAP_WP2_deg*100;
+        u16_VIT_WP_mm_par_s = trameRecue->u8_VIT_WP2_cm_par_s*10;
+        u8_CTRL_WP   = trameRecue->u8_CTRL_WP2;
+	
+	WayPoint * wpEnCours;
+        double d_posx, d_posy, d_cap, d_vit;
+        d_posx = s32_POS_X_WP_um;
+        d_posy = s32_POS_Y_WP_um;
+        d_cap  = u16_CAP_WP_100eme_deg;
+        d_vit  = u16_VIT_WP_mm_par_s;
+        wpEnCours = new WayPoint(d_posx/1000000, d_posy/1000000, d_cap/100, d_vit/1000);
+	double xCentreCercle;
+	cout<<"avant"<<endl;
+	calculXcentreCercleDansRepereWaypoint(wpEnCours,xCentreCercle);
+	cout<<"apres"<<endl;	
+	if (xCentreCercle>=0)
+	{
+	  rayonCercleIdealInitialWPenCours = xCentreCercle;
+	}
+	else
+	{
+	  rayonCercleIdealInitialWPenCours = -xCentreCercle;
+	}
+	delete wpEnCours;
+      }
+      else
+      {
+        //plus de waypoint : ARRET
+      }
+    }
+    else
+    {
+      u64_CARRE_DIST_ROBOT_WP = u64_carreDistanceCouranteRobot_WP;
+      cout <<"u64_CARRE_DIST_ROBOT_WP "<<u64_CARRE_DIST_ROBOT_WP<<endl;
+    }
+  }
+    
+  double distanceAuWPCourant = sqrt(u64_carreDistanceCouranteRobot_WP)/1E6;     
+  int numeroWP_out = numeroWPenCours;
+  log << numeroWP_out <<"\t"<< distanceAuWPCourant <<"\t";
+}
+
+
+void AlgoPIC::calculXcentreCercleDansRepereWaypoint(const WayPoint * wpEnCours,
                                                     double & xCentreCercle)
 {
   //calcul de la position courante dans le repere du WP en cours
-  Point2D * ptCourant = new Point2D(positionAttVit->pt);
-  ptCourant->calculePointDansNouveauRepere(wpEnCours.pt,wpEnCours.attitude_rad);
-    
+  double d_posx,d_posy;
+  d_posx = s32_POS_X_ROBOT_um;
+  d_posy = s32_POS_Y_ROBOT_um;
+  cout<<"avant pt"<<endl;
+  Point2D * ptCourant = new Point2D(d_posx/1000000,d_posy/1000000);
+  ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->cap_deg*3.14/180);
+  cout<<"apres pt"<<endl;  
   //calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
   double xRobot,yRobot;
   xRobot = ptCourant->x;
   yRobot = ptCourant->y;
-  delete ptCourant;
+
   if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
   {
     xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot); 
@@ -519,5 +583,6 @@ void AlgoPIC::calculXcentreCercleDansRepereWaypoint(const WayPoint & wpEnCours,
   {
     xCentreCercle = RAYON_COURBURE_INFINIE;
   }
+  delete ptCourant;
 }
 

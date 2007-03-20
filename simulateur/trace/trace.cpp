@@ -2,6 +2,13 @@
 
 using namespace std;
 
+string intToString (int number)
+{
+  ostringstream oss;
+  oss<< number;
+  return oss.str();
+}
+
 Trace::Trace()
 {
   cout << "new Trace\n";
@@ -16,3 +23,5 @@ void Trace::print(string nomSource, string nomClasse, string nomMethode, string 
 {
   cout << "### "<<nomSource<<" ### "<<nomClasse<<"::"<<nomMethode<<" Message : "<<message<<endl;
 }
+
+

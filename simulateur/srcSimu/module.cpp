@@ -80,7 +80,6 @@ void Module::chargerXML(TiXmlElement* pModuleXML)
     nom = pElt->GetText();
     message = "nom : " + nom;
     trace->print(src,cl,"chargerXML",message);
-    
     pElt = handleModule.FirstChild( "relation" ).Element();
     if (pElt == NULL)
     {
@@ -97,7 +96,6 @@ void Module::chargerXML(TiXmlElement* pModuleXML)
         trace->print(src,cl,"chargerXML",message);
       }
     }
-    
     string nomFichierLog = systPere->getNomSysteme() +"_"+ nom + ".out";
     message = nomFichierLog;
     trace->print(src,cl,"chargerXML",message);
