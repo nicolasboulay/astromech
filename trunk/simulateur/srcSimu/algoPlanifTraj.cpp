@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 AlgoPlanifTrajectoire::AlgoPlanifTrajectoire(double in_accelerationNormaleMax_m_par_s2,
 			                     double in_longueurTerrain_m,
 			                     double in_largeurTerrain_m,
@@ -23,6 +22,7 @@ AlgoPlanifTrajectoire::AlgoPlanifTrajectoire(double in_accelerationNormaleMax_m_
   longueurTerrain_m = in_longueurTerrain_m;
   largeurTerrain_m = in_largeurTerrain_m;
   rayonRobot_m = in_rayonRobot_m;
+
 /*  TiXmlDocument doc( fichierObstacles );
   if(!doc.LoadFile())
   {
@@ -39,6 +39,7 @@ AlgoPlanifTrajectoire::AlgoPlanifTrajectoire(double in_accelerationNormaleMax_m_
       exit(1);
     }
   }*/
+
   message = "fin";
   trace->print(src,cl,"AlgoPlanifTrajectoire",message);
 }
@@ -71,16 +72,25 @@ int AlgoPlanifTrajectoire::chargerXML(TiXmlDocument & doc)
   return 1;
 }
 
-int AlgoPlanifTrajectoire::calculeTrajectoire(//IN
-                           vectorObstacles tableDesObstacles,
-                           WayPoint & wayPointDepart,
-			   WayPoint & wayPointArrivee,
-			   //OUT
-			   vectorWayPoint tableauWPTrajectoire)
+int AlgoPlanifTrajectoire::calculeTrajectoire(
+              //IN
+              vectorObstacles tableDesObstacles,
+              WayPoint & wayPointDepart,
+              WayPoint & wayPointArrivee,
+              //OUT
+              vectorWayPoint tableauWPTrajectoire)
 {
   message = "debut";
   trace->print(src,cl,"calculeTrajectoire",message);
   
+  // Tester trajectoire directe
+  
+  // Construire le graphe à travers les obstacles et tester les collisions à la volée
+  
+  // Rechercher le plus court chemin
+  
+  // Générer la route
+
   message = "fin";
   trace->print(src,cl,"calculeTrajectoire",message);
   return 1;

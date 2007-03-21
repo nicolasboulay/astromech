@@ -12,9 +12,11 @@ typedef vector<Segment2D *> vectorSegment2D;
 
 double max(double x, double y);
 double min(double x, double y);
+double square(double x);
 void normalise0_360_100eme_deg(double & angle_deg);
 void normalise0_2PI(double & angle_rad);
 void normaliseMPI_PPI(double & angle_rad);
+double DistanceAngulaire(double AngleA, double AngleB);
 
 class Point2D
 {
@@ -58,6 +60,47 @@ class Segment2D
     Segment2D * creeSegmentRT(Point2D * centreGraviteRT, double * att_rad);
     int CalculePointJonctionDilate(Segment2D * seg2,double dilatation_m,Point2D * pt1, Point2D * pt2);
     int TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2D * ptInter);
+    double DistancePoint(Point2D *point);
+};
+
+class Vecteur2D
+{
+
+  protected:
+  
+  public:
+  double x;
+  double y;
+  
+  Vecteur2D(double x_i, double y_i);
+  Vecteur2D(Segment2D *seg);
+  Vecteur2D(Point2D *pt1, Point2D *pt2);
+  ~Vecteur2D(void);
+  double ProduitVectoriel(Vecteur2D *vect);
+  double ProduitScalaire(Vecteur2D *vect);
+  double angle(void);
+  double norme(void);
+
+};
+
+/* Arc de cercle de centre pt, définit entre les angles AngleA et AngleB dans le sens trigonométrique (anti-horaire) */
+class Arc2D
+{
+  protected:
+
+  public:
+  Point2D * pt;
+  double rayon;
+  double angleA;
+  double angleB;
+  double longueur;
+  
+  Arc2D(Point2D *ptA, double rayon, double AngleA, double AngleB);
+  ~Arc2D(void);
+  int TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D *ptInter2 );
+  int CalculerSegmentsTangents ( Arc2D *other, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );
+  void CalculerCheminLL ( Arc2D *other, Segment2D *segLL, Segment2D *segRR );
+  void CalculerCheminLR ( Arc2D *other, Segment2D *segLR, Segment2D *segRL );
 };
 
 class Boite2D
