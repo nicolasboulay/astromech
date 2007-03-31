@@ -43,7 +43,7 @@ void normaliseMPI_PPI(double & angle_rad)
 
 /* Fonction calcul de la distance angulaire entre deux angles normalisés [0,2*PI] */
 double DistanceAngulaire ( double AngleA, double AngleB ) {
-      
+  
   if ( AngleB > AngleA ) {
     return AngleB - AngleA;
   } else {
@@ -365,7 +365,7 @@ int Segment2D::TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2
 double Segment2D::DistancePoint ( Point2D *point ) {
 
   Vecteur2D *vectAB = new Vecteur2D(this);
-  Vecteur2D *vectAC = new Vecteur2D(point->x - this->pt1->x, point->y - this->pt1->x);
+  Vecteur2D *vectAC = new Vecteur2D(point->x - this->pt1->x, point->y - this->pt1->y);
   
   double produitVectoriel = vectAB->ProduitVectoriel(vectAC);
   double normeAB = vectAB->norme();
@@ -392,7 +392,7 @@ Vecteur2D::Vecteur2D(Segment2D *seg) {
 
 Vecteur2D::Vecteur2D(Point2D *pt1, Point2D *pt2 ) {
   x = pt2->x - pt1->x;
-  y = pt2->y - pt1->x;
+  y = pt2->y - pt1->y;
 }
 
 Vecteur2D::~Vecteur2D(void) {
@@ -443,14 +443,10 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
 
   // Si distance supérieure entre le segment et le centre supérieure au rayon de l'arc de cercle
   if ( seg->DistancePoint(pt) > rayon ) {
-    return FALSE;
+    printf("Trop eloigne du centre de l'arc\n");
+    return 0;
   }
-  
-  // Si l'arc de cercle correspond à un cercle
-  if ( angleA == angleB ) {
-    return TRUE;
-  }
-  
+    
   // Sinon, il va falloir calculer les points d'intersection
   // On note 0 le centre de l'arc de cercle, A et B les extrêmités du segment
   Vecteur2D *vectAB = new Vecteur2D(seg);
@@ -469,58 +465,76 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
   // On obtient sqrt(d) = sqrt(b^2 - 4.a.c)
   // d étant forcément supérieur à 0 (tests rapides initiaux), on a forcément deux solutions
   
-  double a = square(vectAB->x + vectAB->y);
+  double a = square(vectAB->x) + square(vectAB->y);
   double b = 2*(vectOA->x * vectAB->x + vectOA->y * vectAB->y);
   double c = square(vectOA->x) + square(vectOA->y) - square(rayon);
   double d = square(b) - 4 * a * c;
   
   if ( d < 0 ) { // impossible, mais bon...
+    printf("Impossible\n");
     return FALSE;
   }
   
-  double k1 = -b - sqrt(d) / ( 2 * a );
-  double k2 = -b + sqrt(d) / ( 2 * a );
+  double k1 = (-b - sqrt(d)) / ( 2 * a );
+  double k2 = (-b + sqrt(d)) / ( 2 * a );
 
+  printf("k1:%f k2:%f\n", k1, k2);
+  
   // Si les points d'intersection sont en dehors du segment, c fini
   if ( (k1 < 0 || k1 > 1) && (k2 < 0 || k2 > 1) ) {
-    return FALSE;
+    printf("Aucun\n");
+	return 0;
   }
+  printf("Peut etre\n");
   // Sinon, il va falloir vérifier avec l'arc de cercle
   
   // Construction des deux points d'intersection potentiels Arc-Segment
-  ptInter1->x = seg->pt1->x + k1 * seg->pt2->x;
-  ptInter1->y = seg->pt1->y + k1 * seg->pt2->y;
-  
-  ptInter2->x = seg->pt1->x + k2 * seg->pt2->x;
-  ptInter2->y = seg->pt1->y + k2 * seg->pt2->y;
+ 
+  int NbPoints = 0;
   
   // On regarde si le premier point appartient à l'arc de cercle
-  if ( k1 > 0 && k1 < 0 ) {
+  if ( k1 > 0 && k1 < 1 ) {
 
-    Vecteur2D *vect = new Vecteur2D(pt, ptInter1);
-    double theta = vect->angle();
+    Point2D *ptInter = new Point2D(seg->pt1->x + k1 * (seg->pt2->x - seg->pt1->x), seg->pt1->y + k1 * (seg->pt2->y - seg->pt1->y));
+    Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
+    double theta = vecInter->angle();
     
+	printf("Theta : %f, [%f %f] [%f %f] [%f %f]\n", theta, ptInter->x, ptInter->y, seg->pt1->x, seg->pt1->y, seg->pt2->x, seg->pt2->y);
+	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
     if ( DistanceAngulaire(angleA, theta) < DistanceAngulaire(angleA, angleB) ) {
-      return TRUE;
+      NbPoints++;
+	  ptInter1->x = ptInter->x;
+	  ptInter1->y = ptInter->y;
     }
   
   }
-  
+    
   // On regarde si le deuxième point appartient à l'arc de cercle
-  if ( k2 > 0 && k2 < 0 ) {
+  if ( k2 > 0 && k2 < 1 ) {
 
-    Vecteur2D *vect = new Vecteur2D(pt, ptInter2);
-    double theta = vect->angle();
+    Point2D *ptInter = new Point2D(seg->pt1->x + k2 * (seg->pt2->x - seg->pt1->x), seg->pt1->y + k2 * (seg->pt2->y - seg->pt1->y));
+    Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
+    double theta = vecInter->angle();
     
+	printf("Theta : %f, [%f %f]\n", theta, ptInter->x, ptInter->y);
+	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
     if ( DistanceAngulaire(angleA, theta) < DistanceAngulaire(angleA, angleB) ) {
-      return TRUE;
+		NbPoints++;
+		if ( NbPoints == 1 ) {
+			ptInter1->x = ptInter->x;
+			ptInter1->y = ptInter->y;
+		} else {
+			ptInter2->x = ptInter->x;
+			ptInter2->y = ptInter->y;
+		}
+		
     }
   
   }
   
-  return FALSE;
+  return NbPoints;
 }
 
 // Calcul des 4 segments tangents entre deux cercles
@@ -545,7 +559,7 @@ int Arc2D::CalculerSegmentsTangents ( Arc2D *other, Segment2D *segLL, Segment2D 
   this->CalculerCheminLL ( other, segLL, segRR );
   
   if ( NbSegments == 4 ) {
-    this->CalculerCheminLL ( other, segLR, segRL );
+    this->CalculerCheminLR ( other, segLR, segRL );
   }
   
   return NbSegments;
