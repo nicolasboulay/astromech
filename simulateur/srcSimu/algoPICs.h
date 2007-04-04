@@ -46,6 +46,7 @@ class AlgoPIC : public Algo
     
     
     double vitesseConsigneCG_m_par_s;
+    int vitesseConsigneRoue_mm_par_s;
 
     int sensRotationMoteurDroit;
     int sensRotationMoteurGauche;
@@ -74,10 +75,11 @@ class AlgoPIC : public Algo
                              const double & codeuseMoteurGauche,
 			     const int    & sensRotationMoteurDroit,
 		             const int    & sensRotationMoteurGauche);
+    void boucleGuidageRotation(double & consigneVitesseMoteurDroit_rad_s, 
+		               double & consigneVitesseMoteurGauche_rad_s);
     void boucleGuidage(double & consigneVitesseMoteurDroit_rad_s, 
 		       double & consigneVitesseMoteurGauche_rad_s);
     void miseAjourWaypoint(void);
-    void calculXcentreCercleDansRepereWaypoint(const WayPoint * wpEnCours, double & xCentreCercle);
 					       
     float carreDistanceEuclidienne(float x1,
                                           float y1,

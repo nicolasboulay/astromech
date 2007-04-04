@@ -1,6 +1,18 @@
 #include "geom2D.h"
 #include "tinyxml.h"
+#include "bit.h"
+#include "conversion.h"
 #include <math.h>
+
+//Attention ces define existent aussi dans comSeriePC_PIC.h mais 
+//pour une raison inconnue je n'arrive pas à inclure ce .h
+//bits pour u8_CTRL_WPx
+#define BIT_WP_NUL 7
+#define BIT_WP_NEXT 6
+#define BIT_SENS_WP 5
+#define BIT_ROT 4
+#define BIT_SENS_ROT 3
+#define BIT_PWM 2
 
 #define TRUE 1
 #define FALSE 0
@@ -39,6 +51,18 @@ void normaliseMPI_PPI(double & angle_rad)
 {
   while (angle_rad < -M_PI){angle_rad+=2*M_PI;}
   while (angle_rad >= M_PI){angle_rad-=2*M_PI;}
+}
+
+double valAbs(double & valeur)
+{
+  if (valeur >=0)
+  {
+    return valeur;
+  }
+  else
+  {
+    return -valeur;
+  }
 }
 
 /* Fonction calcul de la distance angulaire entre deux angles normalisés [0,2*PI] */
@@ -750,15 +774,33 @@ WayPoint::WayPoint(TiXmlElement* pWP)
   this->pt = new Point2D(pPt);
   
   pElt = handleWP.FirstChild("cap_deg").Element(); 
-  istringstream iss1( pElt->GetText() );
-  iss1 >> this->cap_deg;
-  cout << "cap_deg "<<iss1.str() <<endl;
+  this->cap_deg = string2Double (pElt->GetText());
+  cout << "cap_deg "<<this->cap_deg <<endl;
+  
   pElt = handleWP.FirstChild("vit_m_par_s").Element();
   istringstream iss2( pElt->GetText() );
   iss2 >> this->vitesse_m_par_s;
   cout << "vitesse_m_par_s "<<iss2.str() <<endl;
+  
+  pElt = handleWP.FirstChild("sensMAv").Element();
+  int sensMAv = string2Int(pElt->GetText());
+  pElt = handleWP.FirstChild("rot").Element();
+  int rot = string2Int(pElt->GetText());
+  pElt = handleWP.FirstChild("sensRot").Element();
+  int sensRot = string2Int(pElt->GetText());
+  cout << "sensMAv "<<sensMAv <<endl;
+  cout << "rot "<<rot <<endl;
+  cout << "sensRot "<<sensRot <<endl;
+  
   controlByte = 0;
+  if (sensMAv==1)
+    setBit(BIT_SENS_WP,controlByte);
+  if (rot==1)
+    setBit(BIT_ROT,controlByte);
+  if (sensRot==1)
+    setBit(BIT_SENS_ROT,controlByte);
 }
+
 
 WayPoint::~WayPoint(void)
 {

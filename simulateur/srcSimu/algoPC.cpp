@@ -69,7 +69,7 @@ void AlgoPC::execute(int tempsCourant_ms)
       setBit(BIT_UPDATE,trameEnvoyee->u8_NAV_CTRL);
       trameEnvoyee->s16_NEW_POS_X_mm = 300;
       trameEnvoyee->s16_NEW_POS_Y_mm = 300;
-      trameEnvoyee->u16_NEW_CAP_deg  = 20;
+      trameEnvoyee->u16_NEW_CAP_deg  = 0;
       trameEnvoyee->s16_QUAT_W = 0;
       trameEnvoyee->s16_QUAT_Z = 0;
     }
@@ -154,12 +154,15 @@ void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
       //envoi du WP nul aux "cases" WP1 et WP2
     }
 
-    trameEnvoyee->u8_NUM_WP1          = u8_numeroAbsoluWP1;
-    trameEnvoyee->s16_POS_X_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
-    trameEnvoyee->s16_POS_Y_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
-    trameEnvoyee->u16_CAP_WP1_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
-    trameEnvoyee->u8_VIT_WP1_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
-    trameEnvoyee->u8_CTRL_WP1         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
+    if (dernierWayPointDepasse==false)
+    {
+      trameEnvoyee->u8_NUM_WP1          = u8_numeroAbsoluWP1;
+      trameEnvoyee->s16_POS_X_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
+      trameEnvoyee->s16_POS_Y_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
+      trameEnvoyee->u16_CAP_WP1_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      trameEnvoyee->u8_VIT_WP1_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
+      trameEnvoyee->u8_CTRL_WP1         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
+    
     
     if (dernierWayPoint==false)
     {
@@ -179,7 +182,7 @@ void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
       trameEnvoyee->u8_VIT_WP2_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP2         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
     }
-    
+    }
     if (dernierWayPointDepasse)
     {
       cout<<"###########dernierWayPointDepasse#####################################"<<endl;

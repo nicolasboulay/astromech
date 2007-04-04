@@ -16,6 +16,7 @@ double square(double x);
 void normalise0_360_100eme_deg(double & angle_deg);
 void normalise0_2PI(double & angle_rad);
 void normaliseMPI_PPI(double & angle_rad);
+double valAbs(double & valeur);
 double DistanceAngulaire(double AngleA, double AngleB);
 
 class Point2D
