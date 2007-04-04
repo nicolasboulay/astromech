@@ -25,6 +25,7 @@ AlgoPIC::AlgoPIC(Systeme *s,Trace * t):Algo(s,t)
   trace->print(src,cl,"AlgoPIC",message);
   numeroWPenCours = 0;
   vitesseConsigneCG_m_par_s = 0;
+  vitesseConsigneRoue_mm_par_s = 0;
   
   trameEnvoyee = new TramePIC_PC();
   trameRecue = new TramePC_PIC();
@@ -130,17 +131,36 @@ void AlgoPIC::execute(int tempsCourant_ms)
   
   if (wayPointConnu)
   {
-    //incrémentation du waypoint si le courant est atteint
-    miseAjourWaypoint();
-
-    //boucle de guidage pour vitesse CG non nulle (depend du WP)
-    
-    boucleGuidage(consigneVitesseMoteurDroit_rad_s, 
-		  consigneVitesseMoteurGauche_rad_s);
+    if (isBitSet(u8_CTRL_WP,BIT_WP_NUL))
+    {
+      log<<endl;
+      consigneVitesseMoteurDroit_rad_s = 0;
+      consigneVitesseMoteurGauche_rad_s = 0;
+    }
+    else
+    {
+      //incrémentation du waypoint si le courant est atteint
+      miseAjourWaypoint();
+      
+      if (isBitSet(u8_CTRL_WP,BIT_ROT))
+      {
+        //rotation sur place
+        boucleGuidageRotation(consigneVitesseMoteurDroit_rad_s, 
+		            consigneVitesseMoteurGauche_rad_s);
+      }
+      else
+      {
+        //boucle de guidage pour vitesse CG non nulle (depend du WP)
+        boucleGuidage(consigneVitesseMoteurDroit_rad_s, 
+		      consigneVitesseMoteurGauche_rad_s);
+      }
+    }
   }
   else
   {
     log<<endl;
+    consigneVitesseMoteurDroit_rad_s = 0;
+    consigneVitesseMoteurGauche_rad_s = 0;
   }
   		
   if (consigneVitesseMoteurDroit_rad_s < 0)
@@ -298,6 +318,7 @@ void AlgoPIC::miseAjourNavigation(const double & impCodeuseMoteurDroit,
   cout<<"deplRD "<<deplacementRoueDroite_um<<" deplRG "<<deplacementRoueGauche_um<<endl;
   
   double deltaAvance_um = (deplacementRoueDroite_um + deplacementRoueGauche_um)/2;
+  
   double d_cap_robot_100eme_deg = u16_CAP_ROBOT_100eme_deg;
   cout <<"u16_CAP_ROBOT_100eme_deg "<<u16_CAP_ROBOT_100eme_deg<<endl;
   double cap_robot_rad = (d_cap_robot_100eme_deg/100)*3.14/180;
@@ -313,7 +334,11 @@ void AlgoPIC::miseAjourNavigation(const double & impCodeuseMoteurDroit,
   s32_POS_X_ROBOT_um = new_pos_x_um;
   s32_POS_Y_ROBOT_um = new_pos_y_um;
   u16_CAP_ROBOT_100eme_deg = new_cap_100eme_deg;
+  deltaAvance_um = valAbs(deltaAvance_um);
   u16_VIT_ROBOT_mm_par_s = deltaAvance_um/pasTemps_ms; 
+  cout<<"deltaAvance "<<deltaAvance_um<<endl;
+  cout<<"pasTemps_ms "<<pasTemps_ms<<endl;
+  cout<<"u16_VIT_ROBOT_mm_par_s "<<u16_VIT_ROBOT_mm_par_s<<endl;
   
   double pos_x_out_m = s32_POS_X_ROBOT_um/1E6;
   double pos_y_out_m = s32_POS_Y_ROBOT_um/1E6;
@@ -323,10 +348,67 @@ void AlgoPIC::miseAjourNavigation(const double & impCodeuseMoteurDroit,
   log << pos_x_out_m <<"\t"<< pos_y_out_m <<"\t"<<cap_out_deg <<"\t"<<vit_out_m_par_s<<"\t";
 }
 
+void AlgoPIC::boucleGuidageRotation(double & consigneVitesseMoteurDroit_rad_s, 
+		                    double & consigneVitesseMoteurGauche_rad_s)
+{
+  //Détermination des signes des vitesses droites et gauches
+  //1: sens horaire 0:anti horaire
+  int sensRotMoteurGauche = 0;
+  int sensRotMoteurDroit  = 0;
+  int vitesseConsigneAccelRoue_mm_par_s = 0;
+  int vitesseConsignePlateauRoue_mm_par_s = 0;
+  int vitesseConsigneDecelerationRoue_mm_par_s = 0;
+  int ecartAngulaireCourant_100eme_deg = 0;
+  vitesseConsigneCG_m_par_s = 0;
+  
+  if (isBitSet(u8_CTRL_WP,BIT_SENS_ROT))
+  {
+    sensRotMoteurGauche = 1;
+    sensRotMoteurDroit  = -1;
+  }
+  else
+  {
+    sensRotMoteurGauche = -1;
+    sensRotMoteurDroit  = 1;
+  }
+  //accélération
+  vitesseConsigneAccelRoue_mm_par_s = vitesseConsigneRoue_mm_par_s+(pasTemps_ms*accelMax_m_par_s2);
+  //plateau
+  vitesseConsignePlateauRoue_mm_par_s = u16_VIT_WP_mm_par_s;
+  //déceleration
+  ecartAngulaireCourant_100eme_deg = u16_CAP_WP_100eme_deg - u16_CAP_ROBOT_100eme_deg;
+  double d = ecartAngulaireCourant_100eme_deg;
+  normalise0_360_100eme_deg(d);
+  ecartAngulaireCourant_100eme_deg = valAbs(d);
+  if (!isBitSet(u8_CTRL_WP,BIT_SENS_ROT))
+  {
+    ecartAngulaireCourant_100eme_deg = 36000-ecartAngulaireCourant_100eme_deg;
+  }
+
+  vitesseConsigneDecelerationRoue_mm_par_s = ecartAngulaireCourant_100eme_deg/10.0;
+  
+  vitesseConsigneRoue_mm_par_s = min(vitesseConsigneAccelRoue_mm_par_s, vitesseConsignePlateauRoue_mm_par_s);
+  vitesseConsigneRoue_mm_par_s = min(vitesseConsigneRoue_mm_par_s, vitesseConsigneDecelerationRoue_mm_par_s);
+  
+  double vitesseConsigneRoue_rad_par_s = ((double)vitesseConsigneRoue_mm_par_s/1000.0)*rapportReduction/rayonRoues_m;
+  
+  consigneVitesseMoteurDroit_rad_s =  sensRotMoteurDroit*vitesseConsigneRoue_rad_par_s;
+  consigneVitesseMoteurGauche_rad_s = sensRotMoteurGauche*vitesseConsigneRoue_rad_par_s;
+  
+  log <<"\t\t\t\t\t\t\t\t" 
+  <<ecartAngulaireCourant_100eme_deg<<"\t"
+  << consigneVitesseMoteurDroit_rad_s<<"\t"
+  << consigneVitesseMoteurGauche_rad_s<<"\t"
+  << vitesseConsigneRoue_rad_par_s<<"\t"
+  << vitesseConsigneAccelRoue_mm_par_s<<"\t"
+  << vitesseConsignePlateauRoue_mm_par_s<<"\t"
+  << vitesseConsigneDecelerationRoue_mm_par_s<<"\t"<<endl;
+}
 void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s, 
-		            double & consigneVitesseMoteurGauche_rad_s)
+		                    double & consigneVitesseMoteurGauche_rad_s)
 {
   //on remet tout en metrique et degres temporairement
+  vitesseConsigneRoue_mm_par_s = 0;
   cout <<"u16_VIT_WP_mm_par_s "<<u16_VIT_WP_mm_par_s<<endl;
   WayPoint * wpEnCours;
   double d_posx, d_posy, d_cap, d_vit;
@@ -341,6 +423,12 @@ void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s,
   d_posy = s32_POS_Y_ROBOT_um;
   d_cap  = u16_CAP_ROBOT_100eme_deg;
   d_vit  = u16_VIT_ROBOT_mm_par_s;
+  if (isBitSet(u8_CTRL_WP,BIT_SENS_WP)==false)
+  {
+    //marche arriere toute
+    d_cap +=18000.0;
+    normalise0_360_100eme_deg(d_cap);
+  }
   positionAttVit = new WayPoint(d_posx/1000000, d_posy/1000000, d_cap/100, d_vit/1000);
 
   Point2D * centreDuCercle = new Point2D(0,0);
@@ -367,6 +455,8 @@ void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s,
       {
         rayonCercle = -xCentreCercle;
       }
+      rayonCercleIdealInitialWPenCours = rayonCercle;
+      
       //Point2D * centreDuCercle = new Point2D(xCentreCercle,0);
       centreDuCercle->x = xCentreCercle;
       centreDuCercle->y = 0;
@@ -402,51 +492,48 @@ void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s,
     double distanceDeceleration = 0;
     cout<<"vitesseConsigneCG_m_par_s "<<vitesseConsigneCG_m_par_s<<endl;
     cout<<"wpEnCours->vitesse_m_par_s "<<wpEnCours->vitesse_m_par_s<<endl;
-    if (vitesseConsigneCG_m_par_s <= wpEnCours->vitesse_m_par_s)
+    
+    //calcul de la distance de décélération
+    double deltaVitesseCourant = wpEnCours->vitesse_m_par_s - vitesseConsigneCG_m_par_s;
+    distanceDeceleration = (deltaVitesseCourant*deltaVitesseCourant)/(2*decelMax_m_par_s2);
+    
+    //calcul de la distance curviligne jusqu'au prochain waypoint
+    double capCentreCercle_Robot = centreDuCercle->calculeCap_rad(positionAttVit->pt);
+    double capCentreCercle_WP = centreDuCercle->calculeCap_rad(wpEnCours->pt);
+    normaliseMPI_PPI(capCentreCercle_Robot);
+    normaliseMPI_PPI(capCentreCercle_WP);
+    double ecartAngulairePourRejoindreWP;
+    if (xCentreCercle >= 0)
     {
-      //il faut accélérer
-      cout << "vc"<<positionAttVit->vitesse_m_par_s<<endl;
-      cout << "vobj"<<wpEnCours->vitesse_m_par_s<<endl;
-      
-      double nouvelleVitesse_m_par_s = vitesseConsigneCG_m_par_s + (pasTemps_ms*accelMax_m_par_s2)/1000;
-      if (nouvelleVitesse_m_par_s < wpEnCours->vitesse_m_par_s)
-      {
-        vitesseConsigneCG_m_par_s = nouvelleVitesse_m_par_s;
-	cout << "vcg"<<vitesseConsigneCG_m_par_s<<endl;
-      }
+      ecartAngulairePourRejoindreWP = capCentreCercle_WP - capCentreCercle_Robot;
     }
     else
     {
-      //il faut décelerer le plus tard possible
-      //calcul de la distance curviligne au WP courant
-      double capCentreCercle_Robot = centreDuCercle->calculeCap_rad(positionAttVit->pt);
-      double capCentreCercle_WP = centreDuCercle->calculeCap_rad(wpEnCours->pt);
-      normaliseMPI_PPI(capCentreCercle_Robot);
-      normaliseMPI_PPI(capCentreCercle_WP);
-      double ecartAngulairePourRejoindreWP = capCentreCercle_WP - capCentreCercle_Robot;
-      normalise0_2PI(ecartAngulairePourRejoindreWP);
-      distanceCurviligneJusqueWP = ecartAngulairePourRejoindreWP * xCentreCercle;
-      cout <<"capCentreCercle_Robot"<< capCentreCercle_Robot <<endl;
-       cout <<"capCentreCercle_WP"<< capCentreCercle_WP <<endl;
-       cout <<"centreDuCercleX"<<centreDuCercle->x<<endl;
-       cout <<"centreDuCercleY"<<centreDuCercle->y<<endl;
-       cout <<"wpX"<<wpEnCours->pt->x<<endl;
-       cout <<"wpY"<<wpEnCours->pt->y<<endl;
-      cout <<"ecartAngulairePourRejoindreWP"<< ecartAngulairePourRejoindreWP <<endl;
+        ecartAngulairePourRejoindreWP = capCentreCercle_Robot - capCentreCercle_WP;
+    }
       
-      //calcul de la distance de décélération
-      double deltaVitesseCourant = wpEnCours->vitesse_m_par_s - vitesseConsigneCG_m_par_s;
-      distanceDeceleration = (deltaVitesseCourant*deltaVitesseCourant)/(2*decelMax_m_par_s2)
-                             +vitesseConsigneCG_m_par_s*tempsMiseEnDecel_s;//terme correctif pour tenir compte de la différence entre
-			     //vitesse de consigne et vitesse réalisée
-      
-      //faut il décelerer?
-      if (distanceCurviligneJusqueWP <= distanceDeceleration)
+    normalise0_2PI(ecartAngulairePourRejoindreWP);
+    distanceCurviligneJusqueWP = ecartAngulairePourRejoindreWP * xCentreCercle;
+    distanceCurviligneJusqueWP = valAbs(distanceCurviligneJusqueWP);
+    
+
+    if (distanceCurviligneJusqueWP <= distanceDeceleration)
+    {
+      vitesseConsigneCG_m_par_s = vitesseConsigneCG_m_par_s - (pasTemps_ms*decelMax_m_par_s2)/1000;
+    }
+    else
+    {
+      if (vitesseConsigneCG_m_par_s < wpEnCours->vitesse_m_par_s)
       {
-        vitesseConsigneCG_m_par_s = vitesseConsigneCG_m_par_s - (pasTemps_ms*decelMax_m_par_s2)/1000;
+        //il faut accélérer sans dépasser Vmax
+        cout << "vc"<<positionAttVit->vitesse_m_par_s<<endl;
+        cout << "vobj"<<wpEnCours->vitesse_m_par_s<<endl;
+      
+        double nouvelleVitesse_m_par_s = vitesseConsigneCG_m_par_s + (pasTemps_ms*accelMax_m_par_s2)/1000;
+	vitesseConsigneCG_m_par_s = min(nouvelleVitesse_m_par_s, wpEnCours->vitesse_m_par_s);
       }
     }
-    
+       
     double deltaV; 
     double vitesseConsigneCG_rad_par_s = vitesseConsigneCG_m_par_s*rapportReduction/rayonRoues_m;
     double valAbsEcartAngulaire_rad = ecartAngulaire_rad;
@@ -478,6 +565,18 @@ void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s,
       consigneVitesseMoteurDroit_rad_s = vitesseConsigneCG_rad_par_s+deltaV;
       consigneVitesseMoteurGauche_rad_s = vitesseConsigneCG_rad_par_s-deltaV;
     }
+    
+    if (isBitSet(u8_CTRL_WP,BIT_SENS_WP)==false)
+    {
+      //marche arriere toute
+      double vd_temp, vgtemp;
+      vd_temp = consigneVitesseMoteurDroit_rad_s;
+      vgtemp  = consigneVitesseMoteurGauche_rad_s;
+      consigneVitesseMoteurDroit_rad_s = -vgtemp;
+      consigneVitesseMoteurGauche_rad_s= -vd_temp;
+    }
+    
+    
     log <<  positionAttVit->cap_deg<<"\t"<<capCercleIdeal <<"\t"<< ecartAngulaire_rad <<"\t"
         << consigneVitesseMoteurDroit_rad_s<<"\t"<< consigneVitesseMoteurGauche_rad_s<<"\t"<<vitesseConsigneCG_rad_par_s<<"\t"
 	<< distanceCurviligneJusqueWP <<"\t"<< distanceDeceleration <<"\t"<<sommeEcartsAngulaire<<endl;
@@ -487,102 +586,81 @@ void AlgoPIC::boucleGuidage(double & consigneVitesseMoteurDroit_rad_s,
 }
 
 float AlgoPIC::carreDistanceEuclidienne(float x1,
-                                               float y1,
-				               float x2,
-				               float y2)
+                                        float y1,
+				        float x2,
+				        float y2)
 {
   return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);
 }
 void AlgoPIC::miseAjourWaypoint(void)
 {
-  //attention au cas des waypoint "changement de cap" à traiter plus tard
-  float u64_carreDistanceCouranteRobot_WP;
-  u64_carreDistanceCouranteRobot_WP = carreDistanceEuclidienne(s32_POS_X_WP_um,
-                                                               s32_POS_Y_WP_um,
-						               s32_POS_X_ROBOT_um,
-                                                               s32_POS_Y_ROBOT_um);
-  cout <<u64_carreDistanceCouranteRobot_WP<<endl;
-  float carre5cm_um=50000.0*50000.0;
-  cout <<carre5cm_um<<endl;
-  if (u64_carreDistanceCouranteRobot_WP < carre5cm_um) //si distWP<5cm
+  bool transitionWP = false;
+  
+  if (isBitSet(u8_CTRL_WP,BIT_ROT))
   {
-    cout <<"distWP<5cm "<<u64_carreDistanceCouranteRobot_WP<<endl;
-    if (u64_carreDistanceCouranteRobot_WP > u64_CARRE_DIST_ROBOT_WP)
+    double ecartAngulaireCourant_100eme_deg = u16_CAP_WP_100eme_deg - u16_CAP_ROBOT_100eme_deg;
+  
+    normalise0_360_100eme_deg(ecartAngulaireCourant_100eme_deg);
+    ecartAngulaireCourant_100eme_deg = valAbs(ecartAngulaireCourant_100eme_deg);
+    if (!isBitSet(u8_CTRL_WP,BIT_SENS_ROT))
     {
-      //la dist au WP commence à augmenter: on transitionne
-      numeroWPenCours++;
-      u64_CARRE_DIST_ROBOT_WP = 1E15;
-      if (numeroWPenCours==trameRecue->u8_NUM_WP2)
-      {
-        s32_POS_X_WP_um = trameRecue->s16_POS_X_WP2_mm*1000;
-        s32_POS_Y_WP_um = trameRecue->s16_POS_Y_WP2_mm*1000;
-        u16_CAP_WP_100eme_deg = trameRecue->u16_CAP_WP2_deg*100;
-        u16_VIT_WP_mm_par_s = trameRecue->u8_VIT_WP2_cm_par_s*10;
-        u8_CTRL_WP   = trameRecue->u8_CTRL_WP2;
-	
-	WayPoint * wpEnCours;
-        double d_posx, d_posy, d_cap, d_vit;
-        d_posx = s32_POS_X_WP_um;
-        d_posy = s32_POS_Y_WP_um;
-        d_cap  = u16_CAP_WP_100eme_deg;
-        d_vit  = u16_VIT_WP_mm_par_s;
-        wpEnCours = new WayPoint(d_posx/1000000, d_posy/1000000, d_cap/100, d_vit/1000);
-	double xCentreCercle;
-	cout<<"avant"<<endl;
-	calculXcentreCercleDansRepereWaypoint(wpEnCours,xCentreCercle);
-	cout<<"apres"<<endl;	
-	if (xCentreCercle>=0)
-	{
-	  rayonCercleIdealInitialWPenCours = xCentreCercle;
-	}
-	else
-	{
-	  rayonCercleIdealInitialWPenCours = -xCentreCercle;
-	}
-	delete wpEnCours;
-      }
-      else
-      {
-        //plus de waypoint : ARRET
-      }
+      ecartAngulaireCourant_100eme_deg = 36000-ecartAngulaireCourant_100eme_deg;
     }
-    else
-    {
-      u64_CARRE_DIST_ROBOT_WP = u64_carreDistanceCouranteRobot_WP;
-      cout <<"u64_CARRE_DIST_ROBOT_WP "<<u64_CARRE_DIST_ROBOT_WP<<endl;
+
+    if (ecartAngulaireCourant_100eme_deg<=50)
+    {	
+      transitionWP = true;
+      vitesseConsigneRoue_mm_par_s = 0;
     }
-  }
-    
-  double distanceAuWPCourant = sqrt(u64_carreDistanceCouranteRobot_WP)/1E6;     
-  int numeroWP_out = numeroWPenCours;
-  log << numeroWP_out <<"\t"<< distanceAuWPCourant <<"\t";
-}
-
-
-void AlgoPIC::calculXcentreCercleDansRepereWaypoint(const WayPoint * wpEnCours,
-                                                    double & xCentreCercle)
-{
-  //calcul de la position courante dans le repere du WP en cours
-  double d_posx,d_posy;
-  d_posx = s32_POS_X_ROBOT_um;
-  d_posy = s32_POS_Y_ROBOT_um;
-  cout<<"avant pt"<<endl;
-  Point2D * ptCourant = new Point2D(d_posx/1000000,d_posy/1000000);
-  ptCourant->calculePointDansNouveauRepere(wpEnCours->pt,wpEnCours->cap_deg*3.14/180);
-  cout<<"apres pt"<<endl;  
-  //calcul du centre du cercle ideal pour joindre le waypoint dans le repere du waypoint
-  double xRobot,yRobot;
-  xRobot = ptCourant->x;
-  yRobot = ptCourant->y;
-
-  if (xRobot != 0) //cas ou le robot n'est pas pile dans l'axe du waypoint
-  {
-    xCentreCercle = (xRobot*xRobot+yRobot*yRobot)/(2*xRobot); 
+    int numeroWP_out = numeroWPenCours;
+    log << numeroWP_out <<"\t"<< ecartAngulaireCourant_100eme_deg <<"\t";
   }
   else
   {
-    xCentreCercle = RAYON_COURBURE_INFINIE;
+    float u64_carreDistanceCouranteRobot_WP;
+    u64_carreDistanceCouranteRobot_WP = carreDistanceEuclidienne(s32_POS_X_WP_um,
+								s32_POS_Y_WP_um,
+								s32_POS_X_ROBOT_um,
+								s32_POS_Y_ROBOT_um);
+    cout <<u64_carreDistanceCouranteRobot_WP<<endl;
+    float carre5cm_um=50000.0*50000.0;
+    cout <<carre5cm_um<<endl;
+    if (u64_carreDistanceCouranteRobot_WP < carre5cm_um) //si distWP<5cm
+    {
+      cout <<"distWP<5cm "<<u64_carreDistanceCouranteRobot_WP<<endl;
+      if (u64_carreDistanceCouranteRobot_WP > u64_CARRE_DIST_ROBOT_WP)
+      {
+        transitionWP = true;
+	u64_CARRE_DIST_ROBOT_WP = 1E15;
+	//la dist au WP commence à augmenter: on transitionne
+      }
+      else
+      {
+	u64_CARRE_DIST_ROBOT_WP = u64_carreDistanceCouranteRobot_WP;
+	cout <<"u64_CARRE_DIST_ROBOT_WP "<<u64_CARRE_DIST_ROBOT_WP<<endl;
+      }
+    }
+     
+    double distanceAuWPCourant = sqrt(u64_carreDistanceCouranteRobot_WP)/1E6;     
+    int numeroWP_out = numeroWPenCours;
+    log << numeroWP_out <<"\t"<< distanceAuWPCourant <<"\t";
   }
-  delete ptCourant;
+  
+  if (transitionWP)
+  {
+        numeroWPenCours++;
+	if (numeroWPenCours==trameRecue->u8_NUM_WP2)
+	{
+		s32_POS_X_WP_um = trameRecue->s16_POS_X_WP2_mm*1000;
+		s32_POS_Y_WP_um = trameRecue->s16_POS_Y_WP2_mm*1000;
+		u16_CAP_WP_100eme_deg = trameRecue->u16_CAP_WP2_deg*100;
+		u16_VIT_WP_mm_par_s = trameRecue->u8_VIT_WP2_cm_par_s*10;
+		u8_CTRL_WP   = trameRecue->u8_CTRL_WP2;
+	}
+	else
+	{
+	  //plus de waypoint : ARRET
+	  setBit(BIT_WP_NUL,u8_CTRL_WP);
+	}
+  }
 }
-
