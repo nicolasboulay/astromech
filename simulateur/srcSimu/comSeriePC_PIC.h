@@ -65,6 +65,8 @@ class TramePC_PIC
   signed short   s16_POS_X_WP1_mm;
   signed short   s16_POS_Y_WP1_mm;
   unsigned short u16_CAP_WP1_deg;
+  signed short   s16_XCAP_WP1_mm;
+  signed short   s16_YCAP_WP1_mm;
   unsigned char  u8_VIT_WP1_cm_par_s;
   unsigned char  u8_CTRL_WP1;
   
@@ -72,6 +74,8 @@ class TramePC_PIC
   signed short   s16_POS_X_WP2_mm;
   signed short   s16_POS_Y_WP2_mm;
   unsigned short u16_CAP_WP2_deg;
+  signed short   s16_XCAP_WP2_mm;
+  signed short   s16_YCAP_WP2_mm;
   unsigned char  u8_VIT_WP2_cm_par_s;
   unsigned char  u8_CTRL_WP2;
    
