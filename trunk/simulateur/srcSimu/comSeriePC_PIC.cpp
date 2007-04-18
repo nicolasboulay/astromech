@@ -65,6 +65,8 @@ TramePC_PIC::TramePC_PIC(void)
   s16_POS_X_WP1_mm = 0;
   s16_POS_Y_WP1_mm = 0;
   u16_CAP_WP1_deg = 0;
+  s16_XCAP_WP1_mm = 0;
+  s16_YCAP_WP1_mm = 0;
   u8_VIT_WP1_cm_par_s = 0;
   u8_CTRL_WP1 = 0;
   
@@ -72,6 +74,8 @@ TramePC_PIC::TramePC_PIC(void)
   s16_POS_X_WP2_mm = 0;
   s16_POS_Y_WP2_mm = 0;
   u16_CAP_WP2_deg = 0;
+  s16_XCAP_WP2_mm = 0;
+  s16_YCAP_WP2_mm = 0;
   u8_VIT_WP2_cm_par_s = 0;
   u8_CTRL_WP2 = 0;
 
@@ -99,14 +103,18 @@ void TramePC_PIC::copieTramePC_PIC(TramePC_PIC * trameARecopier)
   u8_NUM_WP1     = trameARecopier->u8_NUM_WP1;
   s16_POS_X_WP1_mm  = trameARecopier->s16_POS_X_WP1_mm;
   s16_POS_Y_WP1_mm  = trameARecopier->s16_POS_Y_WP1_mm;
-  u16_CAP_WP1_deg    = trameARecopier->u16_CAP_WP1_deg;
+  u16_CAP_WP1_deg   = trameARecopier->u16_CAP_WP1_deg;
+  s16_XCAP_WP1_mm   = trameARecopier->s16_XCAP_WP1_mm; 
+  s16_YCAP_WP1_mm   = trameARecopier->s16_YCAP_WP1_mm;
   u8_VIT_WP1_cm_par_s     = trameARecopier->u8_VIT_WP1_cm_par_s;
-  u8_CTRL_WP1    = trameARecopier->u8_CTRL_WP1;
+  u8_CTRL_WP1       = trameARecopier->u8_CTRL_WP1;
   
   u8_NUM_WP2     = trameARecopier->u8_NUM_WP2;
   s16_POS_X_WP2_mm  = trameARecopier->s16_POS_X_WP2_mm;
   s16_POS_Y_WP2_mm  = trameARecopier->s16_POS_Y_WP2_mm;
   u16_CAP_WP2_deg    = trameARecopier->u16_CAP_WP2_deg;
+  s16_XCAP_WP2_mm   = trameARecopier->s16_XCAP_WP2_mm; 
+  s16_YCAP_WP2_mm   = trameARecopier->s16_YCAP_WP2_mm;
   u8_VIT_WP2_cm_par_s     = trameARecopier->u8_VIT_WP2_cm_par_s;
   u8_CTRL_WP2    = trameARecopier->u8_CTRL_WP2;
 }
@@ -136,6 +144,10 @@ string TramePC_PIC::tramePC_PICToString(void)
   str+=intToString(s16_POS_Y_WP1_mm);
   str+="\ncap";
   str+=intToString(u16_CAP_WP1_deg);
+  str+="\nXcap";
+  str+=intToString(s16_XCAP_WP1_mm);
+  str+="\Ycap";
+  str+=intToString(s16_YCAP_WP1_mm);
   str+="\nvitesse";
   str+=intToString(u8_VIT_WP1_cm_par_s);
   str+="\noctet de controle";
@@ -149,6 +161,10 @@ string TramePC_PIC::tramePC_PICToString(void)
   str+=intToString(s16_POS_Y_WP2_mm);
   str+="\ncap";
   str+=intToString(u16_CAP_WP2_deg);
+  str+="\nXcap";
+  str+=intToString(s16_XCAP_WP2_mm);
+  str+="\Ycap";
+  str+=intToString(s16_YCAP_WP2_mm);
   str+="\nvitesse";
   str+=intToString(u8_VIT_WP2_cm_par_s);
   str+="\noctet de controle";

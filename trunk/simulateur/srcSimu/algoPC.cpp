@@ -156,29 +156,41 @@ void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
 
     if (dernierWayPointDepasse==false)
     {
+      double cap_rad = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      cap_rad *=M_PI/180;
       trameEnvoyee->u8_NUM_WP1          = u8_numeroAbsoluWP1;
       trameEnvoyee->s16_POS_X_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
       trameEnvoyee->s16_POS_Y_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
       trameEnvoyee->u16_CAP_WP1_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      trameEnvoyee->s16_XCAP_WP1_mm     = 1000*sin(cap_rad);
+      trameEnvoyee->s16_YCAP_WP1_mm     = 1000*cos(cap_rad);
       trameEnvoyee->u8_VIT_WP1_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP1         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
     
     
     if (dernierWayPoint==false)
     {
+      double cap_rad = listeWPCourante[u8_numeroWP1_dansListe+1]->cap_deg;
+      cap_rad *=M_PI/180;
       trameEnvoyee->u8_NUM_WP2           = u8_numeroAbsoluWP1+1;
       trameEnvoyee->s16_POS_X_WP2_mm     = 1000*listeWPCourante[u8_numeroWP1_dansListe+1]->pt->x;
       trameEnvoyee->s16_POS_Y_WP2_mm     = 1000*listeWPCourante[u8_numeroWP1_dansListe+1]->pt->y;
       trameEnvoyee->u16_CAP_WP2_deg      = listeWPCourante[u8_numeroWP1_dansListe+1]->cap_deg;
+      trameEnvoyee->s16_XCAP_WP2_mm      = 1000*sin(cap_rad);
+      trameEnvoyee->s16_YCAP_WP2_mm      = 1000*cos(cap_rad);
       trameEnvoyee->u8_VIT_WP2_cm_par_s  = 100*listeWPCourante[u8_numeroWP1_dansListe+1]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP2          = listeWPCourante[u8_numeroWP1_dansListe+1]->controlByte;
     }
     else
     {
+      double cap_rad = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      cap_rad *=M_PI/180;
       trameEnvoyee->u8_NUM_WP2          = u8_numeroAbsoluWP1;
       trameEnvoyee->s16_POS_X_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
       trameEnvoyee->s16_POS_Y_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
       trameEnvoyee->u16_CAP_WP2_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      trameEnvoyee->s16_XCAP_WP2_mm     = 1000*sin(cap_rad);
+      trameEnvoyee->s16_YCAP_WP2_mm     = 1000*cos(cap_rad);
       trameEnvoyee->u8_VIT_WP2_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP2         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
     }
@@ -193,29 +205,41 @@ void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
     //remplacement immédiat du waypoint 1
     u8_numeroWP1_dansListe = 0;
     indiceListeEnCours = indiceListe;
+    double cap_rad = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+    cap_rad *=M_PI/180;
     trameEnvoyee->u8_NUM_WP1          = u8_numeroAbsoluWP1;
     trameEnvoyee->s16_POS_X_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
     trameEnvoyee->s16_POS_Y_WP1_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
     trameEnvoyee->u16_CAP_WP1_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+    trameEnvoyee->s16_XCAP_WP1_mm     = 1000*sin(cap_rad);
+    trameEnvoyee->s16_YCAP_WP1_mm     = 1000*cos(cap_rad);
     trameEnvoyee->u8_VIT_WP1_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
     trameEnvoyee->u8_CTRL_WP1         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
     
     if (listeWPCourante.size()>=2)
     {
       //positionnement du waypoint 2 à suivre
+      double cap_rad = listeWPCourante[u8_numeroWP1_dansListe+1]->cap_deg;
+      cap_rad *=M_PI/180;
       trameEnvoyee->u8_NUM_WP2          = u8_numeroAbsoluWP1+1;
       trameEnvoyee->s16_POS_X_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe+1]->pt->x;
       trameEnvoyee->s16_POS_Y_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe+1]->pt->y;
       trameEnvoyee->u16_CAP_WP2_deg     = listeWPCourante[u8_numeroWP1_dansListe+1]->cap_deg;
+      trameEnvoyee->s16_XCAP_WP2_mm     = 1000*sin(cap_rad);
+      trameEnvoyee->s16_YCAP_WP2_mm     = 1000*cos(cap_rad);
       trameEnvoyee->u8_VIT_WP2_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe+1]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP2         = listeWPCourante[u8_numeroWP1_dansListe+1]->controlByte;
     }
     else
     {
+      double cap_rad = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      cap_rad *=M_PI/180;
       trameEnvoyee->u8_NUM_WP2          = u8_numeroAbsoluWP1;
       trameEnvoyee->s16_POS_X_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->x;
       trameEnvoyee->s16_POS_Y_WP2_mm    = 1000*listeWPCourante[u8_numeroWP1_dansListe]->pt->y;
       trameEnvoyee->u16_CAP_WP2_deg     = listeWPCourante[u8_numeroWP1_dansListe]->cap_deg;
+      trameEnvoyee->s16_XCAP_WP2_mm     = 1000*sin(cap_rad);
+      trameEnvoyee->s16_YCAP_WP2_mm     = 1000*cos(cap_rad);
       trameEnvoyee->u8_VIT_WP2_cm_par_s = 100*listeWPCourante[u8_numeroWP1_dansListe]->vitesse_m_par_s;
       trameEnvoyee->u8_CTRL_WP2         = listeWPCourante[u8_numeroWP1_dansListe]->controlByte;
     }
