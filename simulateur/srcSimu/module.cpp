@@ -96,7 +96,7 @@ void Module::chargerXML(TiXmlElement* pModuleXML)
         trace->print(src,cl,"chargerXML",message);
       }
     }
-    string nomFichierLog = systPere->getNomSysteme() +"_"+ nom + ".out";
+    string nomFichierLog = systPere->getNomSysteme() +"_"+ nom + ".csv";
     message = nomFichierLog;
     trace->print(src,cl,"chargerXML",message);
     log.open(nomFichierLog.c_str(),ofstream::out | ofstream::trunc);

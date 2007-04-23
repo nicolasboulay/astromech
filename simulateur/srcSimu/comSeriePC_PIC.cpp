@@ -146,7 +146,7 @@ string TramePC_PIC::tramePC_PICToString(void)
   str+=intToString(u16_CAP_WP1_deg);
   str+="\nXcap";
   str+=intToString(s16_XCAP_WP1_mm);
-  str+="\Ycap";
+  str+="\nYcap";
   str+=intToString(s16_YCAP_WP1_mm);
   str+="\nvitesse";
   str+=intToString(u8_VIT_WP1_cm_par_s);
@@ -163,7 +163,7 @@ string TramePC_PIC::tramePC_PICToString(void)
   str+=intToString(u16_CAP_WP2_deg);
   str+="\nXcap";
   str+=intToString(s16_XCAP_WP2_mm);
-  str+="\Ycap";
+  str+="\nYcap";
   str+=intToString(s16_YCAP_WP2_mm);
   str+="\nvitesse";
   str+=intToString(u8_VIT_WP2_cm_par_s);
