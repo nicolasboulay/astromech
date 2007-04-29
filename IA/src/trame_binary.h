@@ -16,6 +16,7 @@ class trame_binary_t : public QVector<unsigned char>
   void gen_valid_pic_pc_paquet();
   void gen_valid_pc_pic_paquet();
   void print();
+  void dump_on_file(QString s);
   void print_from_pic();
   int validation_trame();
 
