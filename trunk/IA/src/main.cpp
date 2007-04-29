@@ -35,10 +35,6 @@
 #include <QObject>
 using namespace std;
 
-
-
-
-
 // class MyThread : public QThread
 // {    
 //   Q_OBJECT
@@ -91,7 +87,8 @@ void MyThread::run()
     tbout.inc_num_trame();
     tbout.gen_valid_pc_pic_paquet();
     tbout.gen_valid_trame();
-         emit newTrame(tbout);
+    emit newTrame(tbout);
+    tbout.dump_on_file("trame_from_pc.txt");
 //     for (int i=0;i<tbout.count();i++){
 //       emit newTrameC(i,j,tbout[i]);
 //     }
@@ -109,7 +106,7 @@ void MyThread::run()
     cout << endl;
     cout << "valide trame ?" << tbin.validation_trame() << endl;
     cout << "validation ?" << tbin.validation() << endl;
-
+    tbin.dump_on_file("trame_from_pic.txt");
 
     sleep(1);
   }

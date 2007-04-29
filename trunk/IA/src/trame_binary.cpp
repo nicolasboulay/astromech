@@ -1,4 +1,7 @@
 #include<trame_binary.h>
+#include<QString>
+#include<QFile>
+#include <QTextStream>
 
 int trame_binary_t::give_pic1_offset()
 {
@@ -207,6 +210,20 @@ void trame_binary_t::print()
     printf("%.2x ", (*this)[i]);
   }
   printf("\n");
+}
+
+void trame_binary_t::dump_on_file(QString s)
+{
+  QFile file(s);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text))
+    return;
+  QTextStream text_out(&file);
+
+  for(int i=0;i<this->count();i++){
+    text_out << dec << (*this)[i] << "\t"; 
+  }
+  text_out << endl;
+  file.close();
 }
 
 void trame_binary_t::print_from_pic()

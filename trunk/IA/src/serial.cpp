@@ -14,6 +14,7 @@ serial_t::serial_t(const char * device): frame(TAILLE_TRAME)
 {
   error=0;
   TRACE;
+  printf("Open serial device : %s\n",device);
   if (0 > (fdr = open(device, O_RDONLY | O_NOCTTY )) ) {
     perror("ouverture port série r");
     error=1;
