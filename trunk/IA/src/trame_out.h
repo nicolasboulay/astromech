@@ -23,7 +23,7 @@ class trame_out_t
   unsigned short  servo_4;
   unsigned short  servo_5;
   unsigned short  servo_6;
-  unsigned short pic1_spare[16];
+  QVector<unsigned short> pic1_spare;
   //pic2
   int pic2_reset;
   int led2_rouge;
@@ -62,9 +62,7 @@ class trame_out_t
   int right_satur_sum_integ;
   int right_thres_prop_only;
 
-  
-
-  unsigned short pic2_spare[17];
+  QVector<unsigned short> pic2_spare; 
 
   //pic3
   int pic3_reset;
@@ -89,7 +87,7 @@ class trame_out_t
   short bar_satur_sum_integ;
   short bar_thres_prop_only;
   
-  unsigned short pic3_spare[17];
+  QVector<unsigned short> pic3_spare; 
   void serialise( trame_binary_t & frame);
 };
 #endif

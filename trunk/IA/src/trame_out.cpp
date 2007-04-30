@@ -1,6 +1,8 @@
 #include "trame_out.h"
 
 #define GET_WORD(a,b) (((a) << 8) |  (b))
+#define GET_H(a) (a>>8)
+#define GET_L(a) (a & 0xff)
 
 trame_out_t::trame_out_t() :
   pic1_reset(0),
@@ -14,6 +16,7 @@ trame_out_t::trame_out_t() :
   servo_4(0),
   servo_5(0),
   servo_6(0),
+  pic1_spare(16,0),
   pic2_reset(0),
   led2_rouge(0),
   led2_orange(0),
@@ -50,6 +53,7 @@ trame_out_t::trame_out_t() :
   right_gain_deriv(0),
   right_satur_sum_integ(0),
   right_thres_prop_only(0),
+  pic2_spare(17,0),
 
   pic3_reset(0),
   led3_vert(0),
@@ -71,8 +75,9 @@ trame_out_t::trame_out_t() :
   bar_gain_integ(0),
   bar_gain_deriv(0),
   bar_satur_sum_integ(0),
-  bar_thres_prop_only(0)
+  bar_thres_prop_only(0),
   
+  pic3_spare(17,0)
 {
 
 }
@@ -107,6 +112,17 @@ void trame_out_t::serialise(trame_binary_t & frame)
     ((led2_jaune&0x1)<<4);
   frame[i]=pic2_ctrl;
   frame[i+1]=(nav_ctrl_update & 0x1)<< 7;
+  frame[i+2]=GET_H(new_position_x);
+  frame[i+3]=GET_L(new_position_x);
+  frame[i+4]=GET_H(new_position_y);
+  frame[i+5]=GET_L(new_position_y);
+  frame[i+6]=GET_H(new_cap);
+  frame[i+7]=GET_L(new_cap);
+  frame[i+8]=GET_H(quat_w);
+  frame[i+9]=GET_L(quat_w);
+  frame[i+10]=GET_H(quat_z);
+  frame[i+11]=GET_L(quat_z);
+
 
   //3
   i=4+TAILLE_PAQUET_PC_PIC_1+TAILLE_PAQUET_PC_PIC_2+3; 

@@ -33,6 +33,9 @@
 #include <QVector>
 #include <QtGui>
 #include <QObject>
+
+#include "manager.h"
+
 using namespace std;
 
 // class MyThread : public QThread
@@ -55,6 +58,7 @@ void MyThread::run()
     trame_binary_t tbin;
     trame_binary_t tbout;
     trame_out_t out;
+    trame_in_t in;
 
     out.led1_jaune = 1;
     out.led1_vert = 0;
@@ -67,6 +71,13 @@ void MyThread::run()
     out.led3_orange=0;
     out.led3_rouge=0;
     int j=0;
+
+    manager_t manager;
+
+    out=manager.execute(in);
+    //    out.print();
+
+    exit();
   while(1){
     
     cout << "---------------------------------------------------\n";
