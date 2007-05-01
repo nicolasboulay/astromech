@@ -40,7 +40,7 @@ class trame_out_t
   unsigned short waypoint_pos_x;
   unsigned short waypoint_pos_y;
   unsigned short waypoint_cap;
-  unsigned short waypoint_speed;
+  uint8_t waypoint_speed;
   int waypoint_ctrl_wp_nul;
   int waypoint_ctrl_wp_next;
   int waypoint_ctrl_sens_wp;
@@ -77,15 +77,15 @@ class trame_out_t
   int ctrl_bar_init;
 
   unsigned int bar_consigne_pos;
-  unsigned short bar_vitesse_rot_max;
-  unsigned short bar_accel_max;
+  uint8_t bar_vitesse_rot_max;
+  uint8_t bar_accel_max;
   short bar_pwm;
 
-  short bar_gain_prop;
-  short bar_gain_integ;
-  short bar_gain_deriv;
+  int8_t bar_gain_prop;
+  int8_t bar_gain_integ;
+  int8_t bar_gain_deriv;
   short bar_satur_sum_integ;
-  short bar_thres_prop_only;
+  uint8_t bar_thres_prop_only;
   
   QVector<unsigned short> pic3_spare; 
   void serialise( trame_binary_t & frame);

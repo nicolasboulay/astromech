@@ -122,7 +122,40 @@ void trame_out_t::serialise(trame_binary_t & frame)
   frame[i+9]=GET_L(quat_w);
   frame[i+10]=GET_H(quat_z);
   frame[i+11]=GET_L(quat_z);
+  frame[i+12]=waypoint_number;
+  frame[i+13]=GET_H(waypoint_pos_x);
+  frame[i+14]=GET_L(waypoint_pos_x);
+  frame[i+15]=GET_H(waypoint_pos_y);
+  frame[i+16]=GET_L(waypoint_pos_y);
+  frame[i+17]=GET_H(waypoint_cap);
+  frame[i+18]=GET_L(waypoint_cap);
+  frame[i+19]=waypoint_speed;
+  
+  uint8_t waypoint_ctrl = 
+    ((waypoint_ctrl_wp_nul&0x1)<<7) |
+    ((waypoint_ctrl_wp_next&0x1)<<6) |
+    ((waypoint_ctrl_sens_wp&0x1)<<5) |
+    ((waypoint_ctrl_rot&0x1)<<4) |
+    (( waypoint_ctrl_sens_rot&0x1)<<3) |
+    ((waypoint_ctrl_pwm&0x1)<<2);
+  frame[i+20]=waypoint_ctrl;
+  frame[i+21]=GET_H(right_pwm_motor);
+  frame[i+22]=GET_L(right_pwm_motor);
+  frame[i+23]=GET_H(left_pwm_motor);
+  frame[i+24]=GET_L(left_pwm_motor);
+  frame[i+25]=left_gain_prop;
+  frame[i+26]=left_gain_integ;
+  frame[i+27]=left_gain_deriv;
+  frame[i+28]=GET_H(left_satur_sum_integ);
+  frame[i+29]=GET_L(left_satur_sum_integ);
+  frame[i+30]=left_thres_prop_only;
 
+  frame[i+31]=right_gain_prop;
+  frame[i+32]=right_gain_integ;
+  frame[i+33]=right_gain_deriv;
+  frame[i+34]=GET_H(right_satur_sum_integ);
+  frame[i+35]=GET_L(right_satur_sum_integ);
+  frame[i+36]=right_thres_prop_only;
 
   //3
   i=4+TAILLE_PAQUET_PC_PIC_1+TAILLE_PAQUET_PC_PIC_2+3; 
@@ -133,5 +166,26 @@ void trame_out_t::serialise(trame_binary_t & frame)
     ((led3_orange&0x1)<<4) |
     ((led3_rouge&0x1)<<3);
   frame[i]=pic3_ctrl;
+
+  unsigned short bar_ctrl = 
+    ((ctrl_bar_sens_rot &0x1)<<7) |
+    ((ctrl_bar_pwm&0x1)<<6) |
+    ((ctrl_bar_libre&0x1)<<5) |
+    ((ctrl_bar_init&0x1)<<4);
+  frame[i+1]=bar_ctrl;
   
+  frame[i+2]=GET_H(bar_consigne_pos);
+  frame[i+3]=GET_L(bar_consigne_pos);
+  frame[i+4]=bar_vitesse_rot_max;
+  frame[i+5]=bar_accel_max;
+  frame[i+6]=GET_H(bar_pwm);
+  frame[i+7]=GET_L(bar_pwm);
+
+  frame[i+8]=bar_gain_prop;
+  frame[i+9]=bar_gain_integ;
+  frame[i+10]=bar_gain_deriv;
+  frame[i+11]=GET_H(bar_satur_sum_integ);
+  frame[i+12]=GET_L(bar_satur_sum_integ);
+  frame[i+13]=bar_thres_prop_only;
+
 }
