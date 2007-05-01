@@ -33,23 +33,11 @@
 #include <QVector>
 #include <QtGui>
 #include <QObject>
+#include "CImg.h"
 
 #include "manager.h"
 
 using namespace std;
-
-// class MyThread : public QThread
-// {    
-//   Q_OBJECT
-// public:
-//   void run();
-//   MyThread(char* _device) {device=_device;}
-// private:
-//   char * device;
-
-//   signals:
-//   void newTrame(QVector<unsigned char> tab);
-// };
 
 void MyThread::run()
 {
@@ -70,7 +58,7 @@ void MyThread::run()
     out.led3_jaune=1;
     out.led3_orange=0;
     out.led3_rouge=0;
-    int j=0;
+        int j=0;
 
     manager_t manager;
 
@@ -128,22 +116,34 @@ int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
 
+  // Display program usage, when invoked from the command line with option '-h'.
+  cimg_usage("Astromech IA : ./ia [-dev /dev/ttyS0] [-nogui]");
+
+
+  // Read device filename from the command line (or set to /dev/ttyS0)"
+
+  const char * dev
+    = cimg_option("-dev","/dev/ttyS0","RS232 device");
+  bool use_gui
+    = !(cimg_option("-nogui",false,"Starting without gui"));
+
+
+  MyThread mt(dev);
+
   
-  MyThread mt(argv[1]);
+  if(use_gui){
+    gui_t gui(&mt);
+    qRegisterMetaType<QVector<unsigned char> >("QVector<unsigned char>");
+    QObject::connect(&mt, SIGNAL(newTrame(QVector<unsigned char>)),
+		     &gui, SLOT(updateD(QVector<unsigned char>)));//,Qt::DirectConnection);
+    mt.start();
+    gui.show();
+  } else {
+    mt.start();
+  }
 
-
-  gui_t gui(&mt);
-  qRegisterMetaType<QVector<unsigned char> >("QVector<unsigned char>");
-   QObject::connect(&mt, SIGNAL(newTrame(QVector<unsigned char>)),
- 		   &gui, SLOT(updateD(QVector<unsigned char>)));//,Qt::DirectConnection);
-//   QObject::connect(&mt, SIGNAL(newTrameC(int, int, int)),
-// 		   &gui, SLOT(updateC(int, int, int)));//,Qt::DirectConnection);
-
-  mt.dumpObjectInfo ();
-  gui.dumpObjectInfo ();
-  mt.start();
-
-  gui.show();
+  //mt.dumpObjectInfo ();
+  //gui.dumpObjectInfo ();
 
   return app.exec();
 }
