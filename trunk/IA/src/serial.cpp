@@ -13,7 +13,7 @@ using namespace std;
 serial_t::serial_t(const char * device): frame(TAILLE_TRAME)
 {
   error=0;
-  TRACE;
+ 
   printf("Open serial device : %s\n",device);
   if (0 > (fdr = open(device, O_RDONLY | O_NOCTTY )) ) {
     perror("ouverture port série r");
@@ -84,15 +84,15 @@ void serial_t::exchange(QVector<unsigned char> & in, trame_binary_t & out)
 	     n, __FILE__, __LINE__);
   }
 
-      printf("buffer[bank][%i]:\n",n);
-      for(int i=0;i<in.count();i++){
-        printf("%.2x ", buffer[0][i]);
-      }
-      printf("\n");
-      for(int i=0;i<in.count();i++){
-        printf("%.2x ", buffer[1][i]);
-      }
-      printf("\nbank=%i\n",bank);
+  //     printf("buffer[bank][%i]:\n",n);
+//       for(int i=0;i<in.count();i++){
+//         printf("%.2x ", buffer[0][i]);
+//       }
+//       printf("\n");
+//       for(int i=0;i<in.count();i++){
+//         printf("%.2x ", buffer[1][i]);
+//       }
+//       printf("\nbank=%i\n",bank);
    
   find_trame((bank+1)%2);
 
@@ -102,7 +102,7 @@ void serial_t::exchange(QVector<unsigned char> & in, trame_binary_t & out)
 
 void serial_t::find_trame(unsigned previous_bank){
   int start=-1;  
-  TRACE;
+
   for(int i=0;i<TAILLE_TRAME;i++){
     if((buffer[previous_bank][i] == 0x1a) &&
        (buffer[previous_bank][i+1] == 0xcf) &&

@@ -35,30 +35,31 @@ void manager_t::setPriority(int compo_n, int referee, int rank)
 
 trame_out_t manager_t::execute(trame_in_t in)
 { 
-  TRACE;    printf(":%i\n",compo.size());
+  //  TRACE;    printf(":%i\n",compo.size());
   for (int i = 0; i < compo.size(); ++i) {
     res[i]=compo[i].execute(in,state);
-    printf(":%i\n",i);
+    //printf(":%i\n",i);
   }
-  TRACE;
+  //  TRACE;
   generateTrameout();
-  TRACE;
+  //TRACE;
   return out;
 }
 
 void manager_t::generateTrameout()
 {
   QVector<int> choosed_compo; 
-  int i,n; TRACE;
+  int i,n; 
+  //TRACE;
   for (n = 0; n < REFEREE_NUMBER; ++n) {
     for (i = 0; i < res.size(); ++i) {
-      TRACE;
+      //TRACE;
       if(res[i].isActive.at(n)){
-	printf("%i %i\n",i,n);
+	//printf("%i %i\n",i,n);
 	break;
       }
     }
-    TRACE;
+    // TRACE;
     choosed_compo.append(i);
   }   
   copyTrame(choosed_compo);
