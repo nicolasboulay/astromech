@@ -7,6 +7,6 @@ TEMPLATE = app
 CONFIG += qt thread x11
 QMAKE_CXXFLAGS_RELEASE += -g
 # Input
-SOURCES += main.cpp gui.cpp serial.cpp trame_binary.cpp trame_out.cpp trame_in.cpp manager.cpp
-HEADERS  = gui.h serial.h trame_binary.h common.h trame_out.h trame_in.h manager.h 
+SOURCES += main.cpp gui.cpp serial.cpp trame_binary.cpp trame_out.cpp trame_in.cpp manager.cpp task_rt.cpp
+HEADERS  = gui.h serial.h trame_binary.h common.h trame_out.h trame_in.h manager.h task_rt.h
 # Command: /usr/lib/qt4/bin/qmake -spec /usr/share/doc/qt-4.1.4/mkspecs/linux-g++ -unix -o Makefile ia.pro

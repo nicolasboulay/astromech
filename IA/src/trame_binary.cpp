@@ -53,18 +53,18 @@ int trame_binary_t::validation_trame()
 
   if(magic!=0x1ACFFC1d)
     return -1;
-  TRACE;
+
   //XOR trame
   for(unsigned i=0; i < TAILLE_TRAME-2;i+=2){
     xor1^=this->at(i);
     xor2^=this->at(i+1);
   }
-  printf("xor1=%x xor2=%x [-2]=%x [-1]=%x", xor1,xor2,
-	 this->at(TAILLE_TRAME-2), this->at(TAILLE_TRAME-1));
+//   printf("xor1=%x xor2=%x [-2]=%x [-1]=%x", xor1,xor2,
+// 	 this->at(TAILLE_TRAME-2), this->at(TAILLE_TRAME-1));
   if((xor1!=this->at(TAILLE_TRAME-2))||
      (xor2!=this->at(TAILLE_TRAME-1)))
     return -1;
-  TRACE;
+
   return 0;
 }
 int trame_binary_t::validation_paquet(unsigned h, unsigned offset, unsigned size)
@@ -78,9 +78,9 @@ int trame_binary_t::validation_paquet(unsigned h, unsigned offset, unsigned size
   for(unsigned i=offset; i < (offset+size-2);i+=2){
     add+=(this->at(i) << 8) | this->at(i+1);
   }
-  printf("validation paquet add=%x add1=%x add2=%x [-2]=%x [-1]=%x size=%i offset=%i\n", 
-	add,((add >> 8)& 0xff), ((add & 0xff)),this->at(offset+ size-2), this->at(offset+ size-1),
-	 size, offset);
+  // printf("validation paquet add=%x add1=%x add2=%x [-2]=%x [-1]=%x size=%i offset=%i\n", 
+// 	add,((add >> 8)& 0xff), ((add & 0xff)),this->at(offset+ size-2), this->at(offset+ size-1),
+// 	 size, offset);
   if((((add >> 8)& 0xff )!=this->at(offset+ size-2))||
      ((add & 0xff)!=this->at(offset+ size-1)))
     return -1;

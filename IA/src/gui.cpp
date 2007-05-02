@@ -7,7 +7,7 @@
 #include <QSize>
 
 
-gui_t::gui_t(MyThread * mt,QWidget *parent)
+gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   : QWidget(parent), j(0)
 {
  
