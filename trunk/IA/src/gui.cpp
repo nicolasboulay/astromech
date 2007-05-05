@@ -7,6 +7,7 @@
 #include <QSize>
 #include<QTreeWidget>
 #include "trame_out.h"
+#include "trame_in.h"
 #include <QString>
 #include <QStringList>
 gui_t::gui_t(task_rt_t * mt,QWidget *parent)
@@ -63,10 +64,18 @@ gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   tree_out.append(new QTreeWidgetItem(tree_out_root, QStringList(tr("pic2"))));
   tree_out.append(new QTreeWidgetItem(tree_out_root, QStringList(tr("pic3"))));
 
-  tree_in = new QTreeWidgetItem(treeWidget);
-  tree_in->setText(0, tr("in"));
+  QTreeWidgetItem *tree_in_root =new QTreeWidgetItem(treeWidget, QStringList(QString("in")) );
+
+  tree_in.append(new QTreeWidgetItem(tree_in_root, QStringList(tr("pic1"))));
+  tree_in.append(new QTreeWidgetItem(tree_in_root, QStringList(tr("pic2"))));
+  tree_in.append(new QTreeWidgetItem(tree_in_root, QStringList(tr("pic3"))));
+
+//   tree_in = new QTreeWidgetItem(treeWidget);
+//   tree_in->setText(0, tr("in"));
+
 
   create_tree_out();
+  create_tree_in();
 //   QTreeWidgetItem *osloItem = new QTreeWidgetItem(tree_in);
 //   osloItem->setText(0, tr("Oslo"));
 //   osloItem->setText(1, tr("Yes"));
@@ -84,8 +93,57 @@ gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   printf("plop\n");;
 }
 
+
+void gui_t::create_tree_in()
+{
+#undef INSERT
+#define INSERT(n,a) tree_in_data.append(new QTreeWidgetItem(tree_in[n], QStringList(QString(a))));
+
+INSERT(0,"position_pelle");
+INSERT(0,"mesure_us_1");  
+INSERT(0,"mesure_us_2");
+INSERT(0,"mesure_us_3");
+INSERT(0,"bo_basse");
+INSERT(0,"bo_haute");
+INSERT(0,"pic1_spare");
+
+INSERT(1,"x");
+INSERT(1,"y");
+INSERT(1,"cap");
+INSERT(1,"speed");
+INSERT(1,"current_wp_number");
+INSERT(1,"next_wp_number");
+
+INSERT(1,"left_nb_pulse_com");
+INSERT(1,"left_nb_pulse_pid");
+INSERT(1,"left_error");
+INSERT(1,"left_sum_integ");
+INSERT(1,"left_current_sense");
+INSERT(1,"left_pwm_motor");
+
+INSERT(1,"right_nb_pulse_com");
+INSERT(1,"right_nb_pulse_pid");
+INSERT(1,"right_error");
+INSERT(1,"right_sum_integ");
+INSERT(1,"right_current_sense");
+INSERT(1,"right_pwm_motor");
+INSERT(1,"pic2_spare");
+
+INSERT(2,"start");
+INSERT(2,"contact");
+INSERT(2,"bar_status_init ");
+INSERT(2,"bar_pos_courante");
+INSERT(2,"bar_nb_pulse_com");
+INSERT(2,"bar_nb_pulse_pid");
+INSERT(2,"bar_error");
+INSERT(2,"bar_sum_integ");
+INSERT(2,"bar_pwm");
+INSERT(2,"pic3_spare");
+}
+
 void gui_t::create_tree_out()
 {
+#undef INSERT
 #define INSERT(n,a) tree_out_data.append(new QTreeWidgetItem(tree_out[n], QStringList(QString(a))));
 INSERT(0,"pic1_reset");
 INSERT(0,"led1_jaune");
@@ -175,15 +233,63 @@ QString qvector_to_qstring(QVector<T_t> x)
 return s; // QString is implicitly shared.
 }
 
+void gui_t::update_tree_in(const trame_in_t & in)
+{
+  int i=0;
+#undef UPDATE_S
+#undef UPDATE
+#define UPDATE_S(a)  tree_in_data[i++]->setText(1, (a));
+#define UPDATE(a)  UPDATE_S(tr("%1").arg(in.a));
+
+UPDATE(position_pelle);
+UPDATE(mesure_us_1);  
+UPDATE(mesure_us_2);
+UPDATE(mesure_us_3);
+UPDATE(bo_basse);
+UPDATE(bo_haute);
+UPDATE_S(qvector_to_qstring(in.pic1_spare));
+
+UPDATE(x);
+UPDATE(y);
+UPDATE(cap);
+UPDATE(speed);
+UPDATE(current_wp_number);
+UPDATE(next_wp_number);
+
+UPDATE(left_nb_pulse_com);
+UPDATE(left_nb_pulse_pid);
+UPDATE(left_error);
+UPDATE(left_sum_integ);
+UPDATE(left_current_sense);
+UPDATE(left_pwm_motor);
+
+UPDATE(right_nb_pulse_com);
+UPDATE(right_nb_pulse_pid);
+UPDATE(right_error);
+UPDATE(right_sum_integ);
+UPDATE(right_current_sense);
+UPDATE(right_pwm_motor);
+UPDATE_S(qvector_to_qstring(in.pic2_spare));
+
+UPDATE(start);
+UPDATE(contact);
+UPDATE(bar_status_init );
+UPDATE(bar_pos_courante);
+UPDATE(bar_nb_pulse_com);
+UPDATE(bar_nb_pulse_pid);
+UPDATE(bar_error);
+UPDATE(bar_sum_integ);
+UPDATE(bar_pwm);
+UPDATE_S(qvector_to_qstring(in.pic3_spare));
+
+}
+
 void gui_t::update_tree_out(const trame_out_t & out)
 {
- //   QTreeWidgetItem *osloItem = new QTreeWidgetItem(tree_out);
-//    osloItem->setText(0, tr("Oslo"));
-//    osloItem->setText(1, tr("Yes"));
-
-  //QTreeWidgetItem *osloItem = new QTreeWidgetItem(tree_out, QStringList(QString("pic1_reset")));
   int i=0;
-  //  tree_out_data[i++]->setText(1, tr("%1").arg(out.pic1_reset,2,16));
+
+#undef UPDATE_S
+#undef UPDATE
 #define UPDATE_S(a)  tree_out_data[i++]->setText(1, (a));
 #define UPDATE(a)  UPDATE_S(tr("%1").arg(out.a));
 
