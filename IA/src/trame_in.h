@@ -11,7 +11,7 @@ class trame_in_t
 {
 
   public :
-  unsigned spare[3][8];
+    //  unsigned spare[3][8];
     //1
   int position_pelle;
   int mesure_us_1;  //différents échos renvoyés par un capteur ultrasons

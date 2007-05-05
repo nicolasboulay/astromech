@@ -58,12 +58,15 @@ int main(int argc, char *argv[])
     cout << "Launch gui\n";
     qRegisterMetaType<QVector<unsigned char> >("QVector<unsigned char>");
     qRegisterMetaType<trame_out_t>("trame_out_t");
+    qRegisterMetaType<trame_in_t>("trame_in_t");
     QObject::connect(&mt, SIGNAL(newTrameOut(QVector<unsigned char>)),
 		     &gui, SLOT(update_trame_out(QVector<unsigned char>)));//,Qt::DirectConnection);
     QObject::connect(&mt, SIGNAL(newTrameIn(QVector<unsigned char>)),
 		     &gui, SLOT(update_trame_in(QVector<unsigned char>)));//,Qt::DirectConnection);
     QObject::connect(&mt, SIGNAL(newTreeOut(const trame_out_t &)),
 		     &gui, SLOT(update_tree_out(const trame_out_t &)));//,Qt::DirectConnection);
+    QObject::connect(&mt, SIGNAL(newTreeIn(const trame_in_t &)),
+		     &gui, SLOT(update_tree_in(const trame_in_t &)));//,Qt::DirectConnection);
 
     mt.start();
     //gui.show();

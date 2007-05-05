@@ -4,9 +4,9 @@
 #define GET_WORD(a,b) (((a) << 8) || (b))
 
 trame_in_t::trame_in_t() :
-  pic1_spare(0,8),
-  pic2_spare(0,39),
-  pic3_spare(0,13)
+  pic1_spare(8,0),
+  pic2_spare(39,0),
+  pic3_spare(13,0)
 {
   
 }
