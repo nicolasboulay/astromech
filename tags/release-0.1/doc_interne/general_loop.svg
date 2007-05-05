@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="30cm" height="38cm" viewBox="17 -4 30 38">
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="24.15" y1="1" x2="20" y2="1"/>
+  <polygon style="fill: #000000" points="24.15,1.25 24.95,1 24.15,0.75 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="29.15" y1="6.3" x2="25" y2="6.3"/>
+  <polygon style="fill: #000000" points="29.15,6.55 29.95,6.3 29.15,6.05 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="30" y1="11.6" x2="35" y2="11.6"/>
+  <polyline style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" points="30.8,11.35 30,11.6 30.3353,11.6 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="30" y1="-1" x2="30" y2="34"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="35" y1="-1" x2="35" y2="34"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="25" y1="-1" x2="25" y2="34"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="20" y1="-1" x2="20" y2="34"/>
+  <rect style="fill: #ffffff" x="18" y="-3" width="4" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="18" y="-3" width="4" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="20" y="-1.95">ComRs232</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="18.5" y1="-1.8" x2="21.5" y2="-1.8"/>
+  <rect style="fill: #ffffff" x="23" y="-3" width="3.5" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="23" y="-3" width="3.5" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="24.75" y="-1.95">InputMsg</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="23.5" y1="-1.8" x2="26" y2="-1.8"/>
+  <rect style="fill: #ffffff" x="27.4" y="-3" width="5.4" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="27.4" y="-3" width="5.4" height="1.8"/>
+  <rect style="fill: #ffffff" x="27" y="-2.6" width="5.4" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="27" y="-2.6" width="5.4" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="29.7" y="-1.55">Comportements</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="27.7" y1="-1.4" x2="32.1" y2="-1.4"/>
+  <rect style="fill: #ffffff" x="34" y="-3" width="2.1" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="34" y="-3" width="2.1" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="35.05" y="-1.95">Etat</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="34.5" y1="-1.8" x2="35.6" y2="-1.8"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="39.15" y1="22.2" x2="35" y2="22.2"/>
+  <polygon style="fill: #000000" points="39.15,22.45 39.95,22.2 39.15,21.95 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="40" y1="-1" x2="40" y2="34"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke-dasharray: 0.4; stroke: #000000" x1="45" y1="-1.2" x2="45" y2="34"/>
+  <rect style="fill: #ffffff" x="39.4" y="-3" width="3.05" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="39.4" y="-3" width="3.05" height="1.8"/>
+  <rect style="fill: #ffffff" x="39" y="-2.6" width="3.05" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="39" y="-2.6" width="3.05" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="40.525" y="-1.55">Arbitres</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="39.7" y1="-1.4" x2="41.75" y2="-1.4"/>
+  <rect style="fill: #ffffff" x="43" y="-3" width="4" height="1.8"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="43" y="-3" width="4" height="1.8"/>
+  <text style="fill: #000000; text-anchor:middle; font-size: 0.8; font-family: sans; font-style: normal; font-weight: normal" x="45" y="-1.95">OutputMsg</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.05; stroke: #000000" x1="43.5" y1="-1.8" x2="46.5" y2="-1.8"/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="20.85" y1="31.1932" x2="45" y2="31"/>
+  <polygon style="fill: #000000" points="20.848,30.9432 20.05,31.1996 20.852,31.4432 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="35" y1="16.9" x2="30" y2="16.9"/>
+  <polyline style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" points="34.2,17.15 35,16.9 34.6647,16.9 "/>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="44.15" y1="26" x2="40" y2="26"/>
+  <polygon style="fill: #000000" points="44.15,26.25 44.95,26 44.15,25.75 "/>
+</svg>

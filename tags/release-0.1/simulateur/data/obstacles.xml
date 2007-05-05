@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<Segment2D>
+<Point2D><x>-3</x><y>-3</y></Point2D>
+<Point2D><x>-3</x><y>10</y></Point2D>
+</Segment2D>
+<Segment2D>
+<Point2D><x>-3</x><y>10</y></Point2D>
+<Point2D><x>10</x><y>10</y></Point2D>
+</Segment2D>
+<Segment2D>
+<Point2D><x>10</x><y>10</y></Point2D>
+<Point2D><x>10</x><y>-3</y></Point2D>
+</Segment2D>
+<Segment2D>
+<Point2D><x>10</x><y>-3</y></Point2D>
+<Point2D><x>-3</x><y>-3</y></Point2D>
+</Segment2D>
