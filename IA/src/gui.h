@@ -9,22 +9,6 @@
 
 #include "task_rt.h"
 
-/* class MyThread : public QThread */
-/* {     */
-/*   Q_OBJECT */
-
-/* public: */
-/*   void run(); */
-/*   MyThread(const char* _device) {strcpy(device,_device);} */
-
-/* signals: */
-/*   void newTrame(QVector<unsigned char> tab); */
-/*   void newTrameC(int i, int j,int val); */
-/* private: */
-/*   char device[32]; */
-/*   int j; */
-
-/* }; */
 
 class gui_t : public QWidget
 {
