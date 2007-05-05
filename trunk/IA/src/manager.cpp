@@ -1,27 +1,42 @@
-#include <iostream>
 #include"manager.h"
-#include"comportement.h"
+#include "comportement.h"
+#include "comportement_defaut.h"
+#include "dummy_comportement.h"
+#include "comportement_test.h"
+#include <QTextStream>
+#include <assert.h>
 
-
+using namespace std;
 manager_t:: manager_t() 
   :  priority_rank(REFEREE_NUMBER, QVector<int> (10)),
      compo(0),
      res(COMPO_NUMBER)
 {
-  dummy_comportement_t dummy1(COMPO_DUMMY1);
+  // comportement that do nothing
+  comportement_t * dummy1 = new dummy_comportement_t(COMPO_DUMMY1);
   compo.append(dummy1); 
   setPriority(COMPO_DUMMY1, REFEREE_DEPLACEMENT,0);
   setPriority(COMPO_DUMMY1, REFEREE_TOOLS,0);
   setPriority(COMPO_DUMMY1, REFEREE_DISPLAY,0);
   setPriority(COMPO_DUMMY1, REFEREE_NAVIGATION,0);
+  setPriority(COMPO_DUMMY1, REFEREE_GESTION,0);
 
-  dummy_comportement_t dummy2(COMPO_DUMMY2);
-  compo.append(dummy2); 
-  setPriority(COMPO_DUMMY2, REFEREE_DEPLACEMENT,1);
-  setPriority(COMPO_DUMMY2, REFEREE_TOOLS,1);
-  setPriority(COMPO_DUMMY2, REFEREE_DISPLAY,1);
-  setPriority(COMPO_DUMMY2, REFEREE_NAVIGATION,1);
+  comportement_t * test = new comportement_test_t(COMPO_TEST);
+  compo.append(test); 
+  setPriority(COMPO_TEST, REFEREE_DEPLACEMENT,1);
+  setPriority(COMPO_TEST, REFEREE_TOOLS,1);
+  setPriority(COMPO_TEST, REFEREE_DISPLAY,1);
+  setPriority(COMPO_TEST, REFEREE_NAVIGATION,1);
+  setPriority(COMPO_TEST, REFEREE_GESTION,1);
 
+  //Lowest priority comportement for "sane" behaviour 
+  comportement_t * defaut = new comportement_defaut_t(COMPO_DEFAUT);
+  compo.append(defaut); 
+  setPriority(COMPO_DEFAUT, REFEREE_DEPLACEMENT,100);
+  setPriority(COMPO_DEFAUT, REFEREE_TOOLS,100);
+  setPriority(COMPO_DEFAUT, REFEREE_DISPLAY,100);
+  setPriority(COMPO_DEFAUT, REFEREE_NAVIGATION,100);
+  setPriority(COMPO_DEFAUT, REFEREE_GESTION,100);
 }
 
 void manager_t::setPriority(int compo_n, int referee, int rank)
@@ -33,33 +48,48 @@ void manager_t::setPriority(int compo_n, int referee, int rank)
   priority_rank[referee][rank]=compo_n;
 }
 
-trame_out_t manager_t::execute(trame_in_t in)
-{ 
+trame_out_t & manager_t::execute(trame_in_t in)
+{ QTextStream qout(stdout);
   //  TRACE;    printf(":%i\n",compo.size());
   for (int i = 0; i < compo.size(); ++i) {
-    res[i]=compo[i].execute(in,state);
-    //printf(":%i\n",i);
+    res[i]=compo[i]->execute(in,state);
+    qout << "execute " <<res[i].name()<< endl;
   }
   //  TRACE;
-  generateTrameout();
+  referee();
   //TRACE;
   return out;
 }
 
-void manager_t::generateTrameout()
+QString manager_t::refereetostring(int r)
+{
+  switch(r){
+  case REFEREE_DEPLACEMENT: return "REFEREE_DEPLACEMENT";
+  case REFEREE_TOOLS      : return "REFEREE_TOOLS      ";
+  case REFEREE_DISPLAY    : return "REFEREE_DISPLAY    ";
+  case REFEREE_NAVIGATION : return "REFEREE_NAVIGATION ";
+  case REFEREE_GESTION    : return "REFEREE_GESTION    ";
+  case REFEREE_NUMBER     : return "REFEREE_NUMBER     ";
+  }
+  return("<ERROR>");
+}
+
+
+void manager_t::referee()
 {
   QVector<int> choosed_compo; 
+  QTextStream qout(stdout);
   int i,n; 
   //TRACE;
   for (n = 0; n < REFEREE_NUMBER; ++n) {
     for (i = 0; i < res.size(); ++i) {
-      //TRACE;
       if(res[i].isActive.at(n)){
-	//printf("%i %i\n",i,n);
+	qout << refereetostring(n) << " actif: "<< res[i].name() << ":" << i <<endl;
 	break;
       }
     }
-    // TRACE;
+
+    assert(i < res.size());
     choosed_compo.append(i);
   }   
   copyTrame(choosed_compo);
@@ -70,9 +100,9 @@ void manager_t::generateTrameout()
 
 void manager_t::copyTrame(QVector<int> choosed_compo)
 {
-  
+    QTextStream qout(stdout);
   //default value to not forget anything
-  out=res[choosed_compo[REFEREE_GESTION]]; 
+  //out=res[choosed_compo[REFEREE_GESTION]]; 
 
       //pic1
   out.pic1_reset = res[choosed_compo[REFEREE_GESTION]].pic1_reset;
@@ -85,9 +115,6 @@ void manager_t::copyTrame(QVector<int> choosed_compo)
   out.servo_pelle    =res[choosed_compo[REFEREE_TOOLS]].servo_pelle;
   out.servo_ouverture=res[choosed_compo[REFEREE_TOOLS]].servo_ouverture;
   out.servo_3=res[choosed_compo[REFEREE_TOOLS]].servo_3;
-  out.servo_4=res[choosed_compo[REFEREE_TOOLS]].servo_4;
-  out.servo_5=res[choosed_compo[REFEREE_TOOLS]].servo_5;
-  out.servo_6=res[choosed_compo[REFEREE_TOOLS]].servo_6;
 
   out.pic1_spare=res[choosed_compo[REFEREE_GESTION]].pic1_spare;
   //pic2
@@ -107,6 +134,8 @@ void manager_t::copyTrame(QVector<int> choosed_compo)
   out.waypoint_pos_x  =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_pos_x;
   out.waypoint_pos_y  =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_pos_y;
   out.waypoint_cap    =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_cap;
+  out.waypoint_cap_x    =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_cap_x;
+  out.waypoint_cap_y    =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_cap_y;
   out.waypoint_speed  =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_speed;
   out.waypoint_ctrl_wp_nul =res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_ctrl_wp_nul;
   out.waypoint_ctrl_wp_next=res[choosed_compo[REFEREE_DEPLACEMENT]].waypoint_ctrl_wp_next;

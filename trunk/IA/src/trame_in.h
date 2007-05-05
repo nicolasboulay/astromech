@@ -1,6 +1,7 @@
 #ifndef TRAME_IN_H
 #define TRAME_IN_H
 #include "trame_binary.h"
+#include <QVector>
 
 //
 // Définition logique de la trame pics->PC
@@ -18,7 +19,7 @@ class trame_in_t
   unsigned mesure_us_3;
   unsigned bo_basse;
   unsigned bo_haute;
-  unsigned pic1_spare[14];
+  QVector<uint8_t> pic1_spare;
   //2
   int x;
   int y;
@@ -28,20 +29,22 @@ class trame_in_t
   unsigned next_wp_number;
 
   unsigned left_nb_pulse_com;
-  unsigned left_nb_pusle_pid;
+  unsigned left_nb_pulse_pid;
   unsigned left_error;
   unsigned left_sum_integ;
   unsigned left_current_sense;
   int      left_pwm_motor;
 
   unsigned right_nb_pulse_com;
-  unsigned right_nb_pusle_pid;
+  unsigned right_nb_pulse_pid;
   unsigned right_error;
   unsigned right_sum_integ;
   unsigned right_current_sense;
   int      right_pwm_motor;
-  unsigned pic2_spare[29];
+  QVector<uint8_t> pic2_spare;
   //3
+  uint8_t  start;
+  uint8_t  contact;
   unsigned bar_status_init ;
   unsigned bar_pos_courante;
   unsigned bar_nb_pulse_com;
@@ -49,10 +52,11 @@ class trame_in_t
   int      bar_error;
   unsigned bar_sum_integ;
   int      bar_pwm;
-  unsigned pic3_spare[17];
+  QVector<uint8_t> pic3_spare;
 
 
   //extract the data part of a input frame
   void deserialise(const trame_binary_t & frame);
+  trame_in_t();
 };
 #endif

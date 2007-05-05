@@ -204,6 +204,13 @@ void trame_binary_t::gen_valid_pc_pic_paquet()
 		   TAILLE_PAQUET_PC_PIC_1);
 }
 
+void trame_binary_t::gen_valid_header_trailer()
+{
+  inc_num_trame();
+  gen_valid_pc_pic_paquet();
+  gen_valid_trame();
+}
+
 void trame_binary_t::print()
 {
   for(int i=0;i<this->count();i++){

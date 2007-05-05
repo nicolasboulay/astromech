@@ -1,6 +1,8 @@
 #ifndef TRAME_OUT_H
 #define TRAME_OUT_H
 #include "trame_binary.h"
+#include <QVector>
+#include <QObject>
 
 //
 // Définition logique de la trame PC ->pics
@@ -10,6 +12,7 @@ class trame_out_t
 {
 
   public :
+
   trame_out_t();
     //pic1
   int pic1_reset;
@@ -20,10 +23,7 @@ class trame_out_t
   unsigned short  servo_pelle ;
   unsigned short  servo_ouverture;
   unsigned short  servo_3;
-  unsigned short  servo_4;
-  unsigned short  servo_5;
-  unsigned short  servo_6;
-  QVector<unsigned short> pic1_spare;
+  QVector<uint8_t> pic1_spare;
   //pic2
   int pic2_reset;
   int led2_rouge;
@@ -36,17 +36,20 @@ class trame_out_t
   int quat_w;
   int quat_z;
 
-  unsigned short waypoint_number;
-  unsigned short waypoint_pos_x;
-  unsigned short waypoint_pos_y;
-  unsigned short waypoint_cap;
-  uint8_t waypoint_speed;
-  int waypoint_ctrl_wp_nul;
-  int waypoint_ctrl_wp_next;
-  int waypoint_ctrl_sens_wp;
-  int waypoint_ctrl_rot;
-  int waypoint_ctrl_sens_rot;
-  int waypoint_ctrl_pwm;
+  QVector<uint8_t> waypoint_number;
+  QVector<unsigned short> waypoint_pos_x;
+  QVector<unsigned short> waypoint_pos_y;
+  QVector<unsigned short> waypoint_cap;
+  QVector<unsigned short> waypoint_cap_x;
+  QVector<unsigned short> waypoint_cap_y;
+  QVector<uint8_t> waypoint_speed;
+  QVector<int> waypoint_ctrl_wp_nul;
+  QVector<int> waypoint_ctrl_wp_next;
+  QVector<int> waypoint_ctrl_sens_wp;
+  QVector<int> waypoint_ctrl_rot;
+  QVector<int> waypoint_ctrl_sens_rot;
+  QVector<int> waypoint_ctrl_pwm;
+
   int right_pwm_motor;
   int left_pwm_motor;
 
@@ -62,7 +65,7 @@ class trame_out_t
   int right_satur_sum_integ;
   int right_thres_prop_only;
 
-  QVector<unsigned short> pic2_spare; 
+  QVector<uint8_t> pic2_spare; 
 
   //pic3
   int pic3_reset;
@@ -87,7 +90,7 @@ class trame_out_t
   short bar_satur_sum_integ;
   uint8_t bar_thres_prop_only;
   
-  QVector<unsigned short> pic3_spare; 
+  QVector<uint8_t> pic3_spare; 
   void serialise( trame_binary_t & frame);
 };
 #endif

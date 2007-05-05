@@ -34,79 +34,6 @@
 
 using namespace std;
 
-// void MyThread::run()
-// {
-
-//     serial_t com(device);
-//     trame_binary_t tbin;
-//     trame_binary_t tbout;
-//     trame_out_t out;
-//     trame_in_t in;
-
-//     out.led1_jaune = 1;
-//     out.led1_vert = 0;
-//     out.led1_orange = 1;
-//     out.led2_rouge=0;
-//     out.led2_orange=1;
-//     out.led2_jaune=1;
-//     out.led3_vert=1;
-//     out.led3_jaune=1;
-//     out.led3_orange=0;
-//     out.led3_rouge=0;
-//         int j=0;
-
-//     manager_t manager;
-
-//     out=manager.execute(in);
-//     //    out.print();
-
-//     exit();
-//   while(1){
-    
-//     cout << "---------------------------------------------------\n";
-//     //    tbout[12]=i++;
-//     out.led1_jaune  ^= 1;
-//     out.led1_vert   ^= 1;
-//     out.led1_orange ^= 1;
-//     out.led2_rouge  ^= 1;
-//     out.led2_orange ^= 1;
-//     out.led2_jaune  ^= 1;
-//     out.led3_vert   ^= 1;
-//     out.led3_jaune  ^= 1;
-//     out.led3_orange ^= 1;
-//     out.led3_rouge  ^= 1;
-
-
-//     out.serialise(tbout);
-//     tbout.inc_num_trame();
-//     tbout.gen_valid_pc_pic_paquet();
-//     tbout.gen_valid_trame();
-//     emit newTrame(tbout);
-//     tbout.dump_on_file("trame_from_pc.txt");
-// //     for (int i=0;i<tbout.count();i++){
-// //       emit newTrameC(i,j,tbout[i]);
-// //     }
-// //     j=(j+1)%32;
-//     cout << "out:";
-//     tbout.print();
-//     cout << endl;
-//     cout << "valide trame ?" << tbout.validation_trame() << endl;
-//     cout << "valide pic ?" << tbout.validation_paquet_pc_pic1() << endl;
-
-
-//     com.exchange(tbin,tbout);
-//     cout << "in:";
-//     tbin.print_from_pic();
-//     cout << endl;
-//     cout << "valide trame ?" << tbin.validation_trame() << endl;
-//     cout << "validation ?" << tbin.validation() << endl;
-//     tbin.dump_on_file("trame_from_pic.txt");
-
-//     sleep(1);
-//   }
-  
-// }
-
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
@@ -125,16 +52,19 @@ int main(int argc, char *argv[])
 
   task_rt_t mt(dev);
 
-  
+
   if(use_gui){
     gui_t gui(&mt);
+    cout << "Launch gui\n";
     qRegisterMetaType<QVector<unsigned char> >("QVector<unsigned char>");
     QObject::connect(&mt, SIGNAL(newTrame(QVector<unsigned char>)),
 		     &gui, SLOT(updateD(QVector<unsigned char>)));//,Qt::DirectConnection);
     mt.start();
     gui.show();
+    return app.exec();
   } else {
     mt.start();
+    return app.exec();
   }
 
   //mt.dumpObjectInfo ();
