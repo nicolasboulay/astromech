@@ -55,7 +55,6 @@ void trame_in_t::deserialise(const trame_binary_t & frame)
   left_nb_pulse_pid=frame[i+11];
   left_error       =frame[i+12];
   left_sum_integ   =GET_WORD(frame[i+13],frame[i+14]);
-//   left_current_sense=frame[i+15];
   left_pwm_motor   =GET_WORD(frame[i+15],frame[i+16]);
 
   i+=17;
@@ -63,7 +62,6 @@ void trame_in_t::deserialise(const trame_binary_t & frame)
   right_nb_pulse_pid=frame[i+2];
   right_error       =frame[i+3];
   right_sum_integ   =GET_WORD(frame[i+4],frame[i+5]);
-//   right_current_sense=frame[i+6];
   right_pwm_motor   =GET_WORD(frame[i+6],frame[i+7]);
 
   i+=9;
