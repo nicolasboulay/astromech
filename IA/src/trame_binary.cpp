@@ -193,7 +193,7 @@ void trame_binary_t::gen_valid_pic_pc_paquet()
   gen_valid_paquet(0,4,TAILLE_PAQUET_PIC_PC_1);
   gen_valid_paquet(2,4+TAILLE_PAQUET_PIC_PC_1,TAILLE_PAQUET_PIC_PC_2);
   gen_valid_paquet(4,4+TAILLE_PAQUET_PIC_PC_1+TAILLE_PAQUET_PIC_PC_2,
-		   TAILLE_PAQUET_PIC_PC_1);
+		   TAILLE_PAQUET_PIC_PC_3);
 }
 
 void trame_binary_t::gen_valid_pc_pic_paquet()
@@ -201,7 +201,7 @@ void trame_binary_t::gen_valid_pc_pic_paquet()
   gen_valid_paquet(0,4,TAILLE_PAQUET_PC_PIC_1);
   gen_valid_paquet(2,4+TAILLE_PAQUET_PC_PIC_1,TAILLE_PAQUET_PC_PIC_2);
   gen_valid_paquet(4,4+TAILLE_PAQUET_PC_PIC_1+TAILLE_PAQUET_PC_PIC_2,
-		   TAILLE_PAQUET_PC_PIC_1);
+		   TAILLE_PAQUET_PC_PIC_3);
 }
 
 void trame_binary_t::gen_valid_header_trailer()
@@ -260,7 +260,4 @@ void trame_binary_t::print_from_pic()
     printf("%.2x ", (*this)[i]);
   }
   printf("\n");
-
-
-
 }
