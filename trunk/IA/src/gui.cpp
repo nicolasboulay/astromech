@@ -118,14 +118,12 @@ INSERT(1,"left_nb_pulse_com");
 INSERT(1,"left_nb_pulse_pid");
 INSERT(1,"left_error");
 INSERT(1,"left_sum_integ");
-INSERT(1,"left_current_sense");
 INSERT(1,"left_pwm_motor");
 
 INSERT(1,"right_nb_pulse_com");
 INSERT(1,"right_nb_pulse_pid");
 INSERT(1,"right_error");
 INSERT(1,"right_sum_integ");
-INSERT(1,"right_current_sense");
 INSERT(1,"right_pwm_motor");
 INSERT(1,"pic2_spare");
 
@@ -260,14 +258,12 @@ UPDATE(left_nb_pulse_com);
 UPDATE(left_nb_pulse_pid);
 UPDATE(left_error);
 UPDATE(left_sum_integ);
-UPDATE(left_current_sense);
 UPDATE(left_pwm_motor);
 
 UPDATE(right_nb_pulse_com);
 UPDATE(right_nb_pulse_pid);
 UPDATE(right_error);
 UPDATE(right_sum_integ);
-UPDATE(right_current_sense);
 UPDATE(right_pwm_motor);
 UPDATE_S(qvector_to_qstring(in.pic2_spare));
 

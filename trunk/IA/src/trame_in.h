@@ -32,14 +32,12 @@ class trame_in_t
   unsigned left_nb_pulse_pid;
   unsigned left_error;
   unsigned left_sum_integ;
-  unsigned left_current_sense;
   int      left_pwm_motor;
 
   unsigned right_nb_pulse_com;
   unsigned right_nb_pulse_pid;
   unsigned right_error;
   unsigned right_sum_integ;
-  unsigned right_current_sense;
   int      right_pwm_motor;
   QVector<uint8_t> pic2_spare;
   //3
