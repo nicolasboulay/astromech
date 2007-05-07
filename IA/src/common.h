@@ -17,7 +17,8 @@
 #define COMPO_DUMMY2  1
 #define COMPO_DEFAUT  2
 #define COMPO_TEST    3
-#define COMPO_NUMBER  4
+#define COMPO_ENDOFMATCH    4
+#define COMPO_NUMBER  5
 
 // Referee
 #define REFEREE_DEPLACEMENT 0

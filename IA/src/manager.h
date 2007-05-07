@@ -9,7 +9,7 @@
 class manager_t {
  public:
   manager_t();
-  trame_out_t & execute(trame_in_t in);
+  trame_out_t & execute(trame_in_t in, internal_state_t & state);
   QString refereetostring(int r);
  private:
   void setPriority(int compo, int referee, int rank);
@@ -18,7 +18,7 @@ class manager_t {
 
   QVector<QVector<int> > priority_rank;
   QVector<comportement_t *> compo;
-  internal_state_t state;
+  
   trame_out_t out;
   QVector<comportement_result_t> res;
 };

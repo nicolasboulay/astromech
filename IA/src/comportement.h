@@ -12,7 +12,7 @@ using namespace std;
 class comportement_result_t : public trame_out_t 
 {  
   public:
-
+  comportement_result_t() : trame_out_t(), isActive(100,false) {}
   QString name(){return _name;}
   QString name(QString n){_name=n;return _name;}
 
@@ -26,7 +26,7 @@ class comportement_t
     virtual ~comportement_t() {}
     comportement_t(int _name=-1) : name(_name), output() { }
     virtual comportement_result_t  execute(trame_in_t tin, 
-					    internal_state_t state) {
+					    internal_state_t & state) {
       cout << "comportement_t !\n";
       return output;
     };
