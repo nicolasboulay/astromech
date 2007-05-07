@@ -8,6 +8,7 @@
 #include <QVector>
 #include "common.h"
 #include <complex>
+#include "barillet.h"
 
  comportement_test_t::comportement_test_t(int _name) : comportement_t(_name) 
 {
@@ -24,7 +25,9 @@ comportement_test_t::execute(trame_in_t tin,
     output.isActive[n]=true;
   }
 
-  complex<double> c;
+  if(barillet.test(tin,output)){
+    barillet.test_init();
+  }
 
   return output;
 };
