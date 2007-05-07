@@ -7,6 +7,13 @@
 #include <string>
 #include <vector>
 
+#define POS_X_BALISE_1 1
+#define POS_Y_BALISE_1 0
+#define POS_X_BALISE_2 2
+#define POS_Y_BALISE_2 3
+#define POS_X_BALISE_3 0
+#define POS_Y_BALISE_3 3
+
 using namespace std;
 class Algo;
 class Trace;
@@ -43,5 +50,7 @@ class AlgoPC : public Algo
     bool listeWayPointsTerminee(vectorWayPoint listeWPCourante);
     void chargerXML(TiXmlElement* pModuleXML);
     void connectModules(void);
+    void calculerPosition( double & angleGisement1, double & angleGisement2, double & angleGisement3, double & capRobot, double & posX, double & posY );
+    void calculerGisements( double & angleGisement1, double & angleGisement2, double & angleGisement3, double & capRobot, double & posX, double & posY );
 };
 #endif

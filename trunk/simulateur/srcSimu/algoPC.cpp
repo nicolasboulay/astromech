@@ -41,7 +41,7 @@ AlgoPC::~AlgoPC(void)
 {
   message = "debut";
   trace->print(src,cl,"~AlgoPC",message);
-  delete algoPlanifTraj;
+  delete(algoPlanifTraj);
   message = "fin";
   trace->print(src,cl,"~AlgoPC",message);
 }
@@ -120,6 +120,7 @@ void AlgoPC::execute(int tempsCourant_ms)
   message = "fin";
   trace->print(src,cl,"execute",message);
 }
+
 void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
 {
   unsigned char u8_numeroWayPointEnCoursPIC;
@@ -245,6 +246,7 @@ void AlgoPC::gereFluxWayPoints(vectorWayPoint listeWPCourante, int indiceListe)
     }
   }
 }
+
 bool AlgoPC::listeWayPointsTerminee(vectorWayPoint listeWPCourante)
 {
   if (u8_numeroWP1_dansListe>listeWPCourante.size()-1)
@@ -256,6 +258,7 @@ bool AlgoPC::listeWayPointsTerminee(vectorWayPoint listeWPCourante)
     return false;
   }
 }
+
 void AlgoPC::chargerXML(TiXmlElement* pModuleXML)
 {
   message = "debut";
@@ -303,4 +306,77 @@ void AlgoPC::connectModules(void)
   trace->print(src,cl,"connectModules",message);
 }
 
+void AlgoPC::calculerPosition( double & angleGisement1, double & angleGisement2, double & angleGisement3, double & capRobot, double & posX, double & posY )
+{
+  // Conversion des angles de gisement en angle trigo
+  double angleGisement1_t = 2*M_PI - angleGisement1;
+  double angleGisement2_t = 2*M_PI - angleGisement2;
+  double angleGisement3_t = 2*M_PI - angleGisement3;
+  
+  double dt12 = DistanceAngulaire(angleGisement1_t, angleGisement2_t);
+  double dt23 = DistanceAngulaire(angleGisement2_t, angleGisement3_t);
+  double dt31 = DistanceAngulaire(angleGisement3_t, angleGisement1_t);
+  
+  // calcul des cercles d'intersection
+  double xC1, yC1, R1;
+  double xC2, yC2, R2;
+  double xC3, yC3, R3;
+  
+  calculerCercle(dt12, POS_X_BALISE_1, POS_Y_BALISE_1, POS_X_BALISE_2, POS_Y_BALISE_2, &xC1, &yC1, &R1);
+  //printf("Rayon : %f\n", R1);
+  //printf("Centre: %f %f\n\n", xC1, yC1);
+  
+  calculerCercle(dt23, POS_X_BALISE_2, POS_Y_BALISE_2, POS_X_BALISE_3, POS_Y_BALISE_3, &xC2, &yC2, &R2);
+  //printf("Rayon : %f\n", R2);
+  //printf("Centre: %f %f\n\n", xC2, yC2);
+  
+  calculerCercle(dt31, POS_X_BALISE_3, POS_Y_BALISE_3, POS_X_BALISE_1, POS_Y_BALISE_1, &xC3, &yC3, &R3);
+  //printf("Rayon : %f\n", R3);
+  //printf("Centre: %f %f\n\n", xC3, yC3);
+  
+  // calcul des intersections des cercles
+  
+  double xP1, yP1, xP2, yP2, xP3, yP3;
+  calculerPositionTrigo(POS_X_BALISE_1, POS_Y_BALISE_1, xC3, yC3, R3, xC1, yC1, R1, &xP1, &yP1);
+  calculerPositionTrigo(POS_X_BALISE_2, POS_Y_BALISE_2, xC1, yC1, R1, xC2, yC2, R2, &xP2, &yP2);
+  calculerPositionTrigo(POS_X_BALISE_3, POS_Y_BALISE_3, xC2, yC2, R2, xC3, yC3, R3, &xP3, &yP3);
 
+  //printf("Position : %f %f [%f]\n", xP1, yP1, calculerDistance(xReel, yReel, xP1, yP1));
+  //printf("Position : %f %f [%f]\n", xP2, yP2, calculerDistance(xReel, yReel, xP2, yP2));
+  //printf("Position : %f %f [%f]\n", xP3, yP3, calculerDistance(xReel, yReel, xP3, yP3));
+  
+  posX = (xP1 + xP2 + xP3)/3;
+  posY = (yP1 + yP2 + yP3)/3;
+  
+  // Calcul du relèvement de la balise 1
+  double angleRelevement1_t = calculerAngle(posX, posY, POS_X_BALISE_1, POS_Y_BALISE_1);
+  double capRobot_t = angleRelevement1_t - angleGisement1_t;
+  
+  // Conversion du cap du robot en angle conventionnel
+  capRobot = convertirAngle(capRobot_t);
+  
+}
+
+void AlgoPC::calculerGisements( double & angleGisement1, double & angleGisement2, double & angleGisement3, double & capRobot, double & posX, double & posY )
+{
+
+  // Calcul de la position angulaire des balises en angles trigo
+  double angleRelevement1_t = calculerAngle(posX, posY, POS_X_BALISE_1, POS_Y_BALISE_1);
+  double angleRelevement2_t = calculerAngle(posX, posY, POS_X_BALISE_2, POS_Y_BALISE_2);
+  double angleRelevement3_t = calculerAngle(posX, posY, POS_X_BALISE_3, POS_Y_BALISE_3);
+  
+  // Conversion du cap du robot en angle trigo
+  double capRobot_t = convertirAngle(capRobot);
+  
+  // Calcul des angles de gisement en angle trigo
+  double angleGisement1_t = DistanceAngulaire(capRobot_t, angleRelevement1_t);
+  double angleGisement2_t = DistanceAngulaire(capRobot_t, angleRelevement2_t);
+  double angleGisement3_t = DistanceAngulaire(capRobot_t, angleRelevement3_t);
+  
+  // Conversion en angles conventionnels
+  angleGisement1 = 2*M_PI - angleGisement1_t;
+  angleGisement2 = 2*M_PI - angleGisement2_t;
+  angleGisement3 = 2*M_PI - angleGisement3_t;
+  
+
+}

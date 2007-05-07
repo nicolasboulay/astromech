@@ -65,6 +65,13 @@ double valAbs(double & valeur)
   }
 }
 
+double convertirAngle ( double angle_rad )
+{
+  double angle_conv = M_PI - angle_rad;
+  normalise0_2PI(angle_conv);
+  return angle_conv;
+}
+
 /* Fonction calcul de la distance angulaire entre deux angles normalisés [0,2*PI] */
 double DistanceAngulaire ( double AngleA, double AngleB ) {
   
@@ -248,6 +255,13 @@ Segment2D * Segment2D::creeSegmentRT(Point2D * centreGraviteRT, double * att_rad
   Segment2D *newSegment;
   newSegment = new Segment2D(newpt1,newpt2);
   return newSegment;
+}
+
+void Segment2D::copySegment( Segment2D *seg ) {
+   this->pt1->x = seg->pt1->x;
+   this->pt1->y = seg->pt1->y;
+   this->pt2->x = seg->pt2->x;
+   this->pt2->y = seg->pt2->y;
 }
 
 int Segment2D::CalculePointJonctionDilate(Segment2D * seg2, double dilatation_m,Point2D * ptDilate1, Point2D * ptDilate2)
@@ -455,6 +469,28 @@ Arc2D::Arc2D(Point2D * ptA, double rayonA, double thetaA, double thetaB)
   longueur = rayon * DistanceAngulaire(angleB, angleA);
 }
 
+// 1 = left, 2 = right
+Arc2D::Arc2D(WayPoint *WP, double sens, double rayonA)
+{
+  rayon = rayonA;
+  angleA = 0;
+  angleB = 2 * M_PI;
+  pt = new Point2D(0,0);
+  pt->x = WP->pt->x + rayon * cos(WP->cap_deg * M_PI/180 + sens * M_PI/2);
+  pt->y = WP->pt->y + rayon * sin(WP->cap_deg * M_PI/180 + sens * M_PI/2);
+}
+
+Arc2D::Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayonA)
+{
+  pt = ptO;
+  rayon = rayonA;
+  Vecteur2D *vecOA = new Vecteur2D(ptO, ptA);
+  angleA = vecOA->angle();
+  Vecteur2D *vecOB = new Vecteur2D(ptO, ptB);
+  angleB = vecOB->angle();
+  longueur = rayon * DistanceAngulaire(angleB, angleA);
+}
+
 Arc2D::~Arc2D(void)
 {
   //cout << "delete Arc2D" << endl;
@@ -467,7 +503,7 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
 
   // Si distance supérieure entre le segment et le centre supérieure au rayon de l'arc de cercle
   if ( seg->DistancePoint(pt) > rayon ) {
-    printf("Trop eloigne du centre de l'arc\n");
+    //printf("Trop eloigne du centre de l'arc\n");
     return 0;
   }
     
@@ -495,21 +531,21 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
   double d = square(b) - 4 * a * c;
   
   if ( d < 0 ) { // impossible, mais bon...
-    printf("Impossible\n");
+    //printf("Impossible\n");
     return FALSE;
   }
   
   double k1 = (-b - sqrt(d)) / ( 2 * a );
   double k2 = (-b + sqrt(d)) / ( 2 * a );
 
-  printf("k1:%f k2:%f\n", k1, k2);
+  //printf("k1:%f k2:%f\n", k1, k2);
   
   // Si les points d'intersection sont en dehors du segment, c fini
   if ( (k1 < 0 || k1 > 1) && (k2 < 0 || k2 > 1) ) {
-    printf("Aucun\n");
+    //printf("Aucun\n");
 	return 0;
   }
-  printf("Peut etre\n");
+  //printf("Peut etre\n");
   // Sinon, il va falloir vérifier avec l'arc de cercle
   
   // Construction des deux points d'intersection potentiels Arc-Segment
@@ -523,7 +559,7 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
     Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
     double theta = vecInter->angle();
     
-	printf("Theta : %f, [%f %f] [%f %f] [%f %f]\n", theta, ptInter->x, ptInter->y, seg->pt1->x, seg->pt1->y, seg->pt2->x, seg->pt2->y);
+	//printf("Theta : %f, [%f %f] [%f %f] [%f %f]\n", theta, ptInter->x, ptInter->y, seg->pt1->x, seg->pt1->y, seg->pt2->x, seg->pt2->y);
 	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
     if ( DistanceAngulaire(angleA, theta) < DistanceAngulaire(angleA, angleB) ) {
@@ -541,7 +577,7 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
     Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
     double theta = vecInter->angle();
     
-	printf("Theta : %f, [%f %f]\n", theta, ptInter->x, ptInter->y);
+	//printf("Theta : %f, [%f %f]\n", theta, ptInter->x, ptInter->y);
 	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
     if ( DistanceAngulaire(angleA, theta) < DistanceAngulaire(angleA, angleB) ) {
@@ -665,6 +701,42 @@ void Arc2D::CalculerCheminLR ( Arc2D *other, Segment2D *segLR, Segment2D *segRL 
   segRL->pt2->y = other->pt->y + other->rayon * sin(angle2L);
   
 }
+
+/*
+int Arc2D::CalculerTrajectoires ( WayPoint *wp1, double rayon1, WayPoint *wp2, double rayon2, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL ) {
+  Arc2D *arc1L = new Arc2D(wp1,  1, rayon1);
+  Arc2D *arc1R = new Arc2D(wp1, -1, rayon1);
+  Arc2D *arc2L = new Arc2D(wp2,  1, rayon2);
+  Arc2D *arc2R = new Arc2D(wp2, -1, rayon2);
+  
+  // Initilialisation
+  Segment2D *segVide  = new Segment2D(new Point2D(0,0), new Point2D(0,0));
+  Segment2D *segUtile = new Segment2D(new Point2D(0,0), new Point2D(0,0));
+  
+  // SegmentLL
+  if ( 2 <= arc1L->CalculerSegmentsTangents( arc2L, segUtile, segVide, segVide, segVide) ) {
+    segLL = segUtile;
+  }
+  
+  // SegmentRR
+  if ( 2 <= arc1R->CalculerSegmentsTangents( arc2R, segVide, segUtile, segVide, segVide) ) {
+    segRR = segUtile;
+  }
+  
+  // SegmentLR
+  if ( 4 <= arc1L->CalculerSegmentsTangents( arc2R, segVide, segVide, segUtile, segVide) ) {
+    segLR = segUtile;
+  }
+  
+  // SegmentRL
+  if ( 4 <= arc1R->CalculerSegmentsTangents( arc2L, segVide, segVide, segVide, segUtile) ) {
+    segRL = segUtile;
+  }
+  
+  return 0;
+  
+}
+*/
 
 // Tester la collision avec un cercle
 
@@ -813,4 +885,202 @@ WayPoint* WayPoint::operator =(WayPoint* wp)
   this->cap_deg    = wp->cap_deg;
   this->vitesse_m_par_s = wp->vitesse_m_par_s;
   return this;
+}
+/*************************************************************************/
+/*                                Leg                               */
+/*************************************************************************/
+#define BRANCHE_DROITE 1
+#define BRANCHE_COURBE 2
+
+Branche::Branche(Segment2D *seg)
+{
+  Vecteur2D *vec = new Vecteur2D(seg);
+  double route = vec->angle();
+  wp1 = new WayPoint(seg->pt1->x, seg->pt1->y, route*180/M_PI, 0);
+  wp2 = new WayPoint(seg->pt2->x, seg->pt2->y, route*180/M_PI, 0);
+  longueur = vec->norme();
+  type = BRANCHE_DROITE;
+}
+Branche::Branche(Arc2D *arcA, WayPoint *wpA, WayPoint *wpB) 
+{
+  wp1 = wpA;
+  wp2 = wpB;
+  Vecteur2D *vec1 = new Vecteur2D(arcA->pt, wp1->pt);
+  Vecteur2D *vec2 = new Vecteur2D(arcA->pt, wp2->pt);
+  double angle1 = vec1->angle();
+  double angle2 = vec2->angle();
+  arc = new Arc2D(arcA->pt, arcA->rayon, angle1, angle2);
+  type = BRANCHE_COURBE;
+  longueur = arc->rayon * DistanceAngulaire(vec1->angle(), vec2->angle());
+}
+Branche::~Branche(void)
+{
+  delete wp1;
+  delete wp2;
+}
+
+/*************************************************************************/
+/*                                Navigation absolue                               */
+/*************************************************************************/
+
+// Calcule la distance (norme euclidienne) entre les points A (x1,y1) et B (x2, y2)
+double calculerDistance ( double x1, double y1, double x2, double y2 ) {
+	return sqrt(square(x2-x1) + square(y2-y1));
+}
+
+double calculerAngle(double xA, double yA, double xB, double yB) {
+	
+	double angle = atan2(yB-yA, xB-xA);
+	if ( angle < 0 ) {
+		return angle+2*M_PI;
+	} else {
+		return angle;
+	}
+}
+
+// Calcule le produit vectoriel entre les vecteurs V1 (x1, y1) et V2 (x2, y2) projeté sur z
+double produitVectoriel ( double x1, double y1, double x2, double y2 ) {
+	return x1*y2 - x2*y1;
+}
+
+// Calculer le cercle passant par les points A (x1,y1) et B (x2,y2) et le point où se trouve le robot, position depuis laquelle il voit l'écart angulaire entre A et B égal à dtheta.
+// Le rayon du cercle est sauvegardé dans *R, la position de son centre en *x0 et *y0.
+void calculerCercle ( double dtheta, double x1, double y1, double x2, double y2, double *x0, double *y0, double *R) {
+	
+	// Distance entre A et B
+	double longueur = sqrt(square(x2-x1)+square(y2-y1));
+	
+	// Calcul du rayon du cercle
+	double l = longueur/(2*sin(dtheta));
+	*R = valAbs(l);
+	
+	// Saturation du rayon de virage à 1000 km (éviter les divisions par zéro)
+	if ( *R > 1e9 ) {
+		//printf("Saturation de R de %f à %f\n", *R, 1e9);
+		*R = 1e9;
+	}
+	
+	// Les deux équations du cercle passant par A et B
+	// (xA-x)^2 + (yA-y)^2 = R^2  (1)
+	// (xB-x)^2 + (yB-y)^2 = R^2  (2)
+	// (1)-(2) sous la forme y = A * x + B  (3)
+	double A = - (x2-x1)/(y2-y1);
+	double B = ( square(y2) - square(y1) + square(x2) - square(x1) ) / ( 2*(y2-y1) );
+	
+	//printf("A:%f B:%f\n", A, B);
+	
+	// On remplace y (3) dans l'équation (1)
+	// (1) avec (3) sous la forme Cx^2 + Dx + E = 0
+	double C = 1+square(A);
+	double D = -2*x1 - 2*A*(y1-B);
+	double E = square(x1) + square(y1-B) - square(*R);
+	
+	//printf("C:%f D:%f E:%f\n", C, D, E);
+	
+	// Résolution de l'équation en x^2 : discriminant et racines du polynomes
+	double delta = square(D) - 4*C*E;
+	//printf("delta:%f\n", delta);
+	
+	// On obtient deux centres possibles pour le cercle
+	double xr1 = (-D + sqrt(delta))/(2*C);
+	double xr2 = (-D - sqrt(delta))/(2*C);
+	
+	double yr1 = A * xr1 + B;
+	double yr2 = A * xr2 + B;
+	
+	//printf("C1 : %f %f\n", xr1, yr1);
+	//printf("C2 : %f %f\n", xr2, yr2);
+	
+	// Calcul du produit vectoriel AB x AO1 (premier centre)
+	double ProdVec = produitVectoriel(x2-x1, y2-y1, xr1-x1, yr1-y1);
+	// De quel signe devrait être le produit vectoriel (côté du cercle par rapport à la position du robot)
+	double signePrevu = ( dtheta < M_PI && dtheta > M_PI/2 ) ? -1 : 1;
+	
+	//printf("PV:%f PVprev:%f\n", ProdVec, signePrevu);
+	
+	// Sélection du côté du cercle en fonction du signe du produit vectoriel
+	if ( ProdVec * signePrevu > 0 ) { // Même signe, donc on prend le premier point
+		*x0 = xr1;
+		*y0 = yr1;
+	} else { // C'est le deuxième point qui est le bon
+		*x0 = xr2;
+		*y0 = yr2;
+	}
+	
+}
+
+// Calcule de l'intersection entre les deux cercles C1 de centre (x1, y1) et de rayon R1 et C2 de centre (x2, y2) et de rayon R2
+// Les deux intersections seront notées (xi1, yi1) et (xi2, yi2)
+void calculerIntersectionCercles( double x1, double y1, double R1, double x2, double y2, double R2, double *xi1, double *yi1, double *xi2, double *yi2) {
+
+	//printf("Cercles : %f %f %f ; %f %f %f\n", x1, y1, R1, x2, y2, R2);
+
+	// Sélection de la méthode, soit on prend y=Ax+B, soit x=Ay+B, permet de gérer les points alignés sur l'axe X ou l'axe Y
+	double y21 = y2-y1;
+	double x21 = x2-x1;
+	if ( valAbs(y21) > valAbs(x21) ) {
+		
+		// équation du cercle 1 - équation du cercle 2 sous la forme yi = A xi + B (3)
+		double A = - (x1-x2)/(y1-y2);
+		double B = (square(x1) + square(y1) - square(x2) - square(y2) - square(R1) + square(R2)) / ( 2*(y1-y2));
+		
+		// (3) reportée dans (1) exprimé sous la forme C xi^2 + D xi + E = 0
+		double C = 1 + square(A);
+		double D = -2*x1 + 2*A*(B-y1);
+		double E = square(B-y1) - square(R1) + square(x1);
+		
+		double delta = square(D) - 4*C*E;
+		
+		// Solutions
+		*xi1 = ( -D - sqrt(delta) ) / (2*C);
+		*xi2 = ( -D + sqrt(delta) ) / (2*C);
+		
+		*yi1 = A * (*xi1) + B;
+		*yi2 = A * (*xi2) + B;
+		
+	} else {
+	
+		// équation du cercle 1 - équation du cercle 2 sous la forme xi = A yi + B
+		double A = - (y1-y2)/(x1-x2);
+		double B = (square(x1) + square(y1) - square(x2) - square(y2) - square(R1) + square(R2)) / ( 2*(x1-x2));
+		
+		// (3) reportée dans (1) exprimé sous la forme C xi^2 + D xi + E = 0
+		double C = 1 + square(A);
+		double D = -2*y1 + 2*A*(B-x1);
+		double E = square(B-x1) - square(R1) + square(y1);
+		
+		double delta = square(D) - 4*C*E;
+		
+		// Solutions
+		*yi1 = ( -D - sqrt(delta) ) / (2*C);
+		*yi2 = ( -D + sqrt(delta) ) / (2*C);
+		
+		*xi1 = A * (*yi1) + B;
+		*xi2 = A * (*yi2) + B;
+		
+	}
+	
+}
+
+// Calcule la position d'intersection valable sur les deux calculées : une des deux est la position de la balise présente sur les deux cercles, l'autre est celle du robot
+void calculerPositionTrigo(double xBalise, double yBalise, double xC1, double yC1, double R1, double xC2, double yC2, double R2, double *xP, double *yP) {
+	
+	double xi1, yi1, xi2, yi2;
+	calculerIntersectionCercles(xC1, yC1, R1, xC2, yC2, R2, &xi1, &yi1, &xi2, &yi2);
+
+	//printf("Intersections: %f %f ; %f %f\n", xi1, yi1, xi2, yi2);
+	
+	// Calcule les deux distances par rapport à la balise
+	double distBaliseI1 = calculerDistance(xBalise, yBalise, xi1, yi1);
+	double distBaliseI2 = calculerDistance(xBalise, yBalise, xi2, yi2);
+	
+	// Le point qui a la distance la plus faible par rapport à la balise correspond à l'intersection qui ne nous intéresse pas
+	if ( distBaliseI1 < distBaliseI2 ) {
+		*xP = xi2;
+		*yP = yi2;
+	} else {
+		*xP = xi1;
+		*yP = yi1;
+	}
+
 }

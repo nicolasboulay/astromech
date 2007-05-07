@@ -5,9 +5,17 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
 using namespace std;
+
 class TiXmlElement;
+class Point2D;
 class Segment2D;
+class Vecteur2D;
+class Arc2D;
+class Boite2D;
+class Waypoint2D;
+class Branche;
 typedef vector<Segment2D *> vectorSegment2D;
 
 double max(double x, double y);
@@ -17,7 +25,9 @@ void normalise0_360_100eme_deg(double & angle_deg);
 void normalise0_2PI(double & angle_rad);
 void normaliseMPI_PPI(double & angle_rad);
 double valAbs(double & valeur);
+double convertirAngle ( double angle_rad );
 double DistanceAngulaire(double AngleA, double AngleB);
+
 
 class Point2D
 {
@@ -62,6 +72,7 @@ class Segment2D
     int CalculePointJonctionDilate(Segment2D * seg2,double dilatation_m,Point2D * pt1, Point2D * pt2);
     int TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2D * ptInter);
     double DistancePoint(Point2D *point);
+    void copySegment(Segment2D *seg);
 };
 
 class Vecteur2D
@@ -87,6 +98,7 @@ class Vecteur2D
 /* Arc de cercle de centre pt, définit entre les angles AngleA et AngleB dans le sens trigonométrique (anti-horaire) */
 class Arc2D
 {
+  friend class WayPoint;
   protected:
 
   public:
@@ -97,11 +109,14 @@ class Arc2D
   double longueur;
   
   Arc2D(Point2D *ptA, double rayon, double AngleA, double AngleB);
+  Arc2D(WayPoint *WP, double sens, double rayon);
+  Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayon);
   ~Arc2D(void);
   int TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D *ptInter2 );
   int CalculerSegmentsTangents ( Arc2D *other, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );
   void CalculerCheminLL ( Arc2D *other, Segment2D *segLL, Segment2D *segRR );
   void CalculerCheminLR ( Arc2D *other, Segment2D *segLR, Segment2D *segRL );
+  /*int CalculerTrajectoires ( WayPoint *wp1, double rayon1, WayPoint *wp2, double rayon2, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );*/
 };
 
 class Boite2D
@@ -121,6 +136,7 @@ class Boite2D
     ~Boite2D(void);
     bool IntersectionAvecBoite(Boite2D * boite);
 };
+
 class WayPoint
 {
   protected: //accessible uniquement par héritage
@@ -136,4 +152,28 @@ class WayPoint
   WayPoint* operator = (WayPoint* wp);
 
 };
+
+class Branche
+{
+  protected:
+  
+  public:
+  WayPoint *wp1;
+  WayPoint *wp2;
+  double longueur;
+  int type; // 0 : droit, 1 : courbe
+  Arc2D *arc;
+  
+  Branche(Segment2D *seg);
+  Branche(Arc2D *arc, WayPoint *wpA, WayPoint *wpB) ;
+  ~Branche(void);
+};
+
+double calculerDistance ( double x1, double y1, double x2, double y2 );
+double calculerAngle(double xA, double yA, double xB, double yB);
+double produitVectoriel ( double x1, double y1, double x2, double y2 );
+void calculerCercle ( double dtheta, double x1, double y1, double x2, double y2, double *x0, double *y0, double *R);
+void calculerIntersectionCercles( double x1, double y1, double R1, double x2, double y2, double R2, double *xi1, double *yi1, double *xi2, double *yi2);
+void calculerPositionTrigo(double xBalise, double yBalise, double xC1, double yC1, double R1, double xC2, double yC2, double R2, double *xP, double *yP);
+
 #endif
