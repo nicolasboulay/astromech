@@ -67,7 +67,7 @@ double valAbs(double & valeur)
 
 double convertirAngle ( double angle_rad )
 {
-  double angle_conv = M_PI - angle_rad;
+  double angle_conv = M_PI/2 - angle_rad;
   normalise0_2PI(angle_conv);
   return angle_conv;
 }
