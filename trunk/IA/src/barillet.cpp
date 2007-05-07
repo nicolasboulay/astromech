@@ -10,3 +10,9 @@ bool init(trame_in_t & in, trame_out_t & out)
   }
     return true;
 }
+
+bool barillet_t ::set(const double & degres, enum sensRot_t sensrot, 
+	 const trame_in_t & in, trame_out_t & out)
+{
+  return true;
+}
