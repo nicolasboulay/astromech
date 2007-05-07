@@ -92,12 +92,15 @@ void task_rt_t::run()
   forever{
     out=manager.execute(in,state); 
     emit newTreeState(state);
+    
     out.serialise(tbout);
     tbout.gen_valid_header_trailer();
     tbout.dump_on_file("trame_from_pc.txt");
     emit newTrameOut(tbout);
     emit newTreeOut(out);
+
     comRS232.exchange(tbin,tbout);
+
     emit newTrameIn(tbin);
     if(tbin.validation()){
       // deserialisation uniquement si la trame est valide.
@@ -107,6 +110,7 @@ void task_rt_t::run()
       emit newTreeIn(in);
     }
     tbin.dump_on_file("trame_from_pic.txt");
+
     sleep(1);
   }
 }

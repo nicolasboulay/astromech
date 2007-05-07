@@ -99,6 +99,7 @@ INSERT("match_ongoing");
 INSERT("start_time");
 INSERT("onesecond_in_tick");
 INSERT("elasped_time_s");
+INSERT("current_time_s");
 }
 
 
@@ -255,7 +256,7 @@ UPDATE(match_ongoing);
 UPDATE(start_time);
 UPDATE(onesecond_in_tick);
 UPDATE(elasped_time_s);
-
+UPDATE(current_time_s);
 }
 
 void gui_t::update_tree_in(const trame_in_t & in)
