@@ -78,7 +78,7 @@ trame_out_t::trame_out_t() :
   bar_gain_deriv(0),
   bar_satur_sum_integ(0),
   bar_thres_prop_only(0),
-  pic3_spare(7,0)
+  pic3_spare(6,0)
 {
   waypoint_number[0]=0;
   waypoint_number[1]=0;
@@ -205,19 +205,20 @@ void trame_out_t::serialise(trame_binary_t & frame)
   
   frame[i+2]=GET_H(bar_consigne_pos);
   frame[i+3]=GET_L(bar_consigne_pos);
-  frame[i+4]=bar_vitesse_rot_max;
-  frame[i+5]=bar_accel_max;
-  frame[i+6]=GET_H(bar_pwm);
-  frame[i+7]=GET_L(bar_pwm);
+  frame[i+4]=GET_H(bar_vitesse_rot_max);
+  frame[i+5]=GET_L(bar_vitesse_rot_max);
+  frame[i+6]=bar_accel_max;
+  frame[i+7]=GET_H(bar_pwm);
+  frame[i+8]=GET_L(bar_pwm);
 
-  frame[i+8]=bar_gain_prop;
-  frame[i+9]=bar_gain_integ;
-  frame[i+10]=bar_gain_deriv;
-  frame[i+11]=GET_H(bar_satur_sum_integ);
-  frame[i+12]=GET_L(bar_satur_sum_integ);
-  frame[i+13]=bar_thres_prop_only;
+  frame[i+9]=bar_gain_prop;
+  frame[i+10]=bar_gain_integ;
+  frame[i+11]=bar_gain_deriv;
+  frame[i+12]=GET_H(bar_satur_sum_integ);
+  frame[i+13]=GET_L(bar_satur_sum_integ);
+  frame[i+14]=bar_thres_prop_only;
   
-  for(int j=0;j<7;j++){
+  for(int j=0;j<6;j++){
     frame[i+j]=pic3_spare[j];
   }
 

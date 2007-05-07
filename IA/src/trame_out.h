@@ -80,7 +80,7 @@ class trame_out_t
   int ctrl_bar_init;
 
   unsigned int bar_consigne_pos;
-  uint8_t bar_vitesse_rot_max;
+  unsigned int bar_vitesse_rot_max;
   uint8_t bar_accel_max;
   short bar_pwm;
 
