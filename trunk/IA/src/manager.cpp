@@ -93,13 +93,6 @@ void manager_t::referee()
   int i,n; 
 
   for (n = 0; n < REFEREE_NUMBER; ++n) {
-
-//     for (i = 0; i < res.size(); ++i) {
-//       if(res[i].isActive.at(n)){
-// 	qout << refereetostring(n) << " actif: "<< res[i].name() << ":" << i <<endl;
-// 	break;
-//       }
-//     }
     int n_compo=0;
     for (i = 0; i < priority_rank[n].size(); ++i) {
       n_compo=priority_rank[n][i];
@@ -111,9 +104,6 @@ void manager_t::referee()
       }
 
     }
-
-
-    
 
     assert( n_compo < res.size());
     choosed_compo.append(n_compo);
