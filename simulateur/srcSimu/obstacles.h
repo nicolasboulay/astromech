@@ -21,10 +21,10 @@ typedef vector<int> vectorInt;
 class Obstacle
 {
   protected: //accessible uniquement par héritage
+
+  public : // accessible partout
     Point2D * centreObstacle;
     double rayonObstacle_m;
-    
-  public : // accessible partout
     //Obstacles(string fichierObstacles, Trace * t);
     Obstacle(double xCentreObstacle_m,
               double yCentreObstacle_m,

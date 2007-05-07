@@ -12,6 +12,7 @@ class TiXmlDocument;
 class Trace;
 class Obstacle;
 class WayPoint;
+class Segment2D;
 
 typedef vector<Obstacle *> vectorObstacles;
 typedef vector<WayPoint *> vectorWayPoint;
@@ -39,10 +40,11 @@ class AlgoPlanifTrajectoire
     int calculeTrajectoire(//IN
                            vectorObstacles tableDesObstacles,
                            WayPoint & wayPointDepart,
-			   WayPoint & wayPointArrivee,
-			   //OUT
-			   vectorWayPoint tableauWPTrajectoire);
-			   
-                           
+                           WayPoint & wayPointArrivee,
+                           //OUT
+                             vectorWayPoint tableauWPTrajectoire);
+    int CalculerWaypointWaypoint ( WayPoint *wp1, double rayon1, WayPoint *wp2, double rayon2, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );
+    int CalculerWaypointObstacle ( WayPoint *wp1, double rayon1, Obstacle *obs, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );
+
 };
 #endif
