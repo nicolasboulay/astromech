@@ -6,7 +6,7 @@
 trame_in_t::trame_in_t() :
   pic1_spare(8,0),
   pic2_spare(39,0),
-  pic3_spare(13,0)
+  pic3_spare(12,0)
 {
   
 }
@@ -79,13 +79,13 @@ void trame_in_t::deserialise(const trame_binary_t & frame)
   bar_status_init =(frame[i+2] >> 7) & 0xFE;
   bar_pos_courante=GET_WORD(frame[i+3],frame[i+4]);
   bar_nb_pulse_com=GET_WORD(frame[i+5],frame[i+6]);
-  bar_nb_pulse_pid=frame[i+7];
-  bar_error	  =frame[i+8];
-  bar_sum_integ   =GET_WORD(frame[i+9],frame[i+10]);
-  bar_pwm         =GET_WORD(frame[i+11],frame[i+12]);
+  bar_nb_pulse_pid=GET_WORD(frame[i+7],frame[i+8]);
+  bar_error	  =frame[i+9];
+  bar_sum_integ   =GET_WORD(frame[i+10],frame[i+11]);
+  bar_pwm         =GET_WORD(frame[i+12],frame[i+13]);
 
   i+=13;
-  for(int j=0;j<13;j++){
+  for(int j=0;j<12;j++){
     pic3_spare[j]=frame[i+j];
   }
 
