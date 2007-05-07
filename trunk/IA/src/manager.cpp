@@ -1,10 +1,12 @@
+#include <QTextStream>
+#include <assert.h>
+
 #include"manager.h"
 #include "comportement.h"
 #include "comportement_defaut.h"
 #include "dummy_comportement.h"
 #include "comportement_test.h"
-#include <QTextStream>
-#include <assert.h>
+#include "comportement_endofmatch.h"
 
 using namespace std;
 manager_t:: manager_t() 
@@ -12,7 +14,7 @@ manager_t:: manager_t()
      compo(0),
      res(COMPO_NUMBER)
 {
-  // comportement that do nothing
+  // comportement that do nothing at the highest priority
   comportement_t * dummy1 = new dummy_comportement_t(COMPO_DUMMY1);
   compo.append(dummy1); 
   setPriority(COMPO_DUMMY1, REFEREE_DEPLACEMENT,0);
@@ -21,13 +23,22 @@ manager_t:: manager_t()
   setPriority(COMPO_DUMMY1, REFEREE_NAVIGATION,0);
   setPriority(COMPO_DUMMY1, REFEREE_GESTION,0);
 
+  comportement_t * endofmatch = new comportement_endofmatch_t(COMPO_ENDOFMATCH);
+  compo.append(endofmatch); 
+  setPriority(COMPO_ENDOFMATCH, REFEREE_DEPLACEMENT,5);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_TOOLS,5);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_DISPLAY,5);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,5);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,5);
+
   comportement_t * test = new comportement_test_t(COMPO_TEST);
   compo.append(test); 
-  setPriority(COMPO_TEST, REFEREE_DEPLACEMENT,1);
-  setPriority(COMPO_TEST, REFEREE_TOOLS,1);
-  setPriority(COMPO_TEST, REFEREE_DISPLAY,1);
-  setPriority(COMPO_TEST, REFEREE_NAVIGATION,1);
-  setPriority(COMPO_TEST, REFEREE_GESTION,1);
+  setPriority(COMPO_TEST, REFEREE_DEPLACEMENT,10);
+  setPriority(COMPO_TEST, REFEREE_TOOLS,10);
+  setPriority(COMPO_TEST, REFEREE_DISPLAY,10);
+  setPriority(COMPO_TEST, REFEREE_NAVIGATION,10);
+  setPriority(COMPO_TEST, REFEREE_GESTION,10);
+
 
   //Lowest priority comportement for "sane" behaviour 
   comportement_t * defaut = new comportement_defaut_t(COMPO_DEFAUT);
@@ -41,14 +52,14 @@ manager_t:: manager_t()
 
 void manager_t::setPriority(int compo_n, int referee, int rank)
 {
-  //usefull because the second dimension is not 
+  //usefull because the second dimension is not set
   if(priority_rank[referee].size() < rank){
     priority_rank[referee].resize(rank+2);
   }
   priority_rank[referee][rank]=compo_n;
 }
 
-trame_out_t & manager_t::execute(trame_in_t in)
+trame_out_t & manager_t::execute(trame_in_t in,  internal_state_t & state)
 { QTextStream qout(stdout);
   //  TRACE;    printf(":%i\n",compo.size());
   for (int i = 0; i < compo.size(); ++i) {
@@ -80,18 +91,34 @@ void manager_t::referee()
   QVector<int> choosed_compo; 
   QTextStream qout(stdout);
   int i,n; 
-  //TRACE;
+
   for (n = 0; n < REFEREE_NUMBER; ++n) {
-    for (i = 0; i < res.size(); ++i) {
-      if(res[i].isActive.at(n)){
-	qout << refereetostring(n) << " actif: "<< res[i].name() << ":" << i <<endl;
+
+//     for (i = 0; i < res.size(); ++i) {
+//       if(res[i].isActive.at(n)){
+// 	qout << refereetostring(n) << " actif: "<< res[i].name() << ":" << i <<endl;
+// 	break;
+//       }
+//     }
+    int n_compo=0;
+    for (i = 0; i < priority_rank[n].size(); ++i) {
+      n_compo=priority_rank[n][i];
+      if(res[n_compo].isActive.at(n)){
+
+	qout << refereetostring(n) << " actif: "<< res[n_compo].name() << ":" 
+	     << n_compo << "(priority=" << i << ")"<<endl;
 	break;
       }
+
     }
 
-    assert(i < res.size());
-    choosed_compo.append(i);
+
+    
+
+    assert( n_compo < res.size());
+    choosed_compo.append(n_compo);
   }   
+
   copyTrame(choosed_compo);
 }
 

@@ -10,6 +10,7 @@
 #include "trame_in.h"
 #include <QString>
 #include <QStringList>
+
 gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   : QWidget(parent), in_j(0), out_j(0)
 {
@@ -70,18 +71,11 @@ gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   tree_in.append(new QTreeWidgetItem(tree_in_root, QStringList(tr("pic2"))));
   tree_in.append(new QTreeWidgetItem(tree_in_root, QStringList(tr("pic3"))));
 
-//   tree_in = new QTreeWidgetItem(treeWidget);
-//   tree_in->setText(0, tr("in"));
-
+  tree_state =new QTreeWidgetItem(treeWidget, QStringList(QString("state")) );
 
   create_tree_out();
   create_tree_in();
-//   QTreeWidgetItem *osloItem = new QTreeWidgetItem(tree_in);
-//   osloItem->setText(0, tr("Oslo"));
-//   osloItem->setText(1, tr("Yes"));
- 
-  // QTreeWidgetItem *planets = new QTreeWidgetItem(treeWidget, tree_in);
-//  planets->setText(0, tr("out"));
+  create_tree_state();
 
   QVBoxLayout *symbolic_layout = new QVBoxLayout;
   symbolic_layout->addWidget(treeWidget);
@@ -90,7 +84,21 @@ gui_t::gui_t(task_rt_t * mt,QWidget *parent)
 
   window_tree->show();
 
-  printf("plop\n");;
+}
+
+void gui_t::create_tree_state()
+{
+#undef INSERT
+#define INSERT(a) tree_state_data.append(new QTreeWidgetItem(tree_state, QStringList(QString(a))));
+
+INSERT("x");
+INSERT("y");
+INSERT("cap"); 
+INSERT("match_ongoing");
+
+INSERT("start_time");
+INSERT("onesecond_in_tick");
+INSERT("elasped_time_s");
 }
 
 
@@ -229,6 +237,25 @@ QString qvector_to_qstring(QVector<T_t> x)
     s +=QObject::tr("%1 ").arg(x.at(i));
   }
 return s; // QString is implicitly shared.
+}
+
+void gui_t::update_tree_state(const internal_state_t & state)
+{
+  int i=0;
+#undef UPDATE_S
+#undef UPDATE
+#define UPDATE_S(a)  tree_state_data[i++]->setText(1, (a));
+#define UPDATE(a)  UPDATE_S(tr("%1").arg(state.a));
+
+UPDATE(x);
+UPDATE(y);
+UPDATE(cap); 
+UPDATE(match_ongoing);
+
+UPDATE(start_time);
+UPDATE(onesecond_in_tick);
+UPDATE(elasped_time_s);
+
 }
 
 void gui_t::update_tree_in(const trame_in_t & in)

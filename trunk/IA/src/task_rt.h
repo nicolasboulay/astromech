@@ -6,6 +6,7 @@
 #include <string.h>
 #include "trame_out.h"
 #include "trame_in.h"
+#include "internal_state.h"
 
 // Main task.
 // This run in a thread to leave the main thread for gui
@@ -25,6 +26,8 @@ signals:
   void newTrameIn(QVector<unsigned char> tab);
   void newTreeOut(const trame_out_t & out);
   void newTreeIn(const trame_in_t & in);
+  void newTreeState(const internal_state_t & state);
+
   void newTrameC(int i, int j,int val);
 private:
   char device[32];

@@ -85,12 +85,13 @@ void task_rt_t::run()
   trame_out_t out;
   trame_in_t in;    
   manager_t manager;
+  internal_state_t state;
 
-  sleep(1);
-   emit newTreeIn(in); // for debugging without the robot...
+  emit newTreeIn(in); // for debugging without the robot...
 
   forever{
-    out=manager.execute(in); 
+    out=manager.execute(in,state); 
+    emit newTreeState(state);
     out.serialise(tbout);
     tbout.gen_valid_header_trailer();
     tbout.dump_on_file("trame_from_pc.txt");
