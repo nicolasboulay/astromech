@@ -5,10 +5,12 @@
 #include "internal_state.h"
 #include "comportement.h"
 #include <QVector>
+#include "barillet.h"
 
 // class de test
 class comportement_test_t : public comportement_t 
 {
+  barillet_t barillet;
  public:
   comportement_test_t(int _name);
   virtual comportement_result_t  execute(trame_in_t tin, 
