@@ -7,6 +7,7 @@
 #include "dummy_comportement.h"
 #include "comportement_test.h"
 #include "comportement_endofmatch.h"
+#include "comportement_navigation.h"
 
 using namespace std;
 manager_t:: manager_t() 
@@ -22,6 +23,14 @@ manager_t:: manager_t()
   setPriority(COMPO_DUMMY1, REFEREE_DISPLAY,0);
   setPriority(COMPO_DUMMY1, REFEREE_NAVIGATION,0);
   setPriority(COMPO_DUMMY1, REFEREE_GESTION,0);
+
+  comportement_t * nav = new comportement_navigation_t(COMPO_NAVIGATION);
+  compo.append( nav);
+  setPriority(COMPO_NAVIGATION, REFEREE_DEPLACEMENT,3);
+  setPriority(COMPO_NAVIGATION, REFEREE_TOOLS,3);
+  setPriority(COMPO_NAVIGATION, REFEREE_DISPLAY,3);
+  setPriority(COMPO_NAVIGATION, REFEREE_NAVIGATION,3);
+  setPriority(COMPO_NAVIGATION, REFEREE_GESTION,3);
 
   comportement_t * endofmatch = new comportement_endofmatch_t(COMPO_ENDOFMATCH);
   compo.append(endofmatch); 

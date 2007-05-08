@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     QObject::connect(&mt, SIGNAL(newTreeState(const internal_state_t &)),
 		     &gui, SLOT(update_tree_state(const internal_state_t &)));//,Qt::DirectConnection);
 
-    mt.start();
+    mt.start(QThread::TimeCriticalPriority);
     //gui.show();
     return app.exec();
   } else {
