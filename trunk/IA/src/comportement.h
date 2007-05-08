@@ -15,7 +15,7 @@ class comportement_result_t : public trame_out_t
   comportement_result_t() : trame_out_t(), isActive(100,false) {}
   QString name(){return _name;}
   QString name(QString n){_name=n;return _name;}
-
+  
   QVector<bool> isActive;
   QString _name;   //comportement name used for debugging purpose
 };
@@ -31,7 +31,6 @@ class comportement_t
       return output;
     };
  protected:
-    
     int name; //comportement "name" used for some indexing
   comportement_result_t output;
 };
