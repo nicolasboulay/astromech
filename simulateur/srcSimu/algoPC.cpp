@@ -308,10 +308,10 @@ void AlgoPC::connectModules(void)
 
 void AlgoPC::calculerPosition( double & angleGisement1, double & angleGisement2, double & angleGisement3, double & capRobot, double & posX, double & posY )
 {
-  // Conversion des angles de gisement en angle trigo
-  double angleGisement1_t = 2*M_PI - angleGisement1;
-  double angleGisement2_t = 2*M_PI - angleGisement2;
-  double angleGisement3_t = 2*M_PI - angleGisement3;
+  // Conversion des angles de gisement en angle trigo et en radians
+  double angleGisement1_t = 2*M_PI - angleGisement1*M_PI/180;
+  double angleGisement2_t = 2*M_PI - angleGisement2*M_PI/180;
+  double angleGisement3_t = 2*M_PI - angleGisement3*M_PI/180;
   
   double dt12 = DistanceAngulaire(angleGisement1_t, angleGisement2_t);
   double dt23 = DistanceAngulaire(angleGisement2_t, angleGisement3_t);
@@ -352,8 +352,8 @@ void AlgoPC::calculerPosition( double & angleGisement1, double & angleGisement2,
   double angleRelevement1_t = calculerAngle(posX, posY, POS_X_BALISE_1, POS_Y_BALISE_1);
   double capRobot_t = angleRelevement1_t - angleGisement1_t;
   
-  // Conversion du cap du robot en angle conventionnel
-  capRobot = convertirAngle(capRobot_t);
+  // Conversion du cap du robot en angle conventionnel et en degrés
+  capRobot = convertirAngle(capRobot_t)*180/M_PI;
   
 }
 
@@ -366,17 +366,17 @@ void AlgoPC::calculerGisements( double & angleGisement1, double & angleGisement2
   double angleRelevement3_t = calculerAngle(posX, posY, POS_X_BALISE_3, POS_Y_BALISE_3);
   
   // Conversion du cap du robot en angle trigo
-  double capRobot_t = convertirAngle(capRobot);
+  double capRobot_t = convertirAngle(capRobot)*M_PI/180;
   
   // Calcul des angles de gisement en angle trigo
   double angleGisement1_t = DistanceAngulaire(capRobot_t, angleRelevement1_t);
   double angleGisement2_t = DistanceAngulaire(capRobot_t, angleRelevement2_t);
   double angleGisement3_t = DistanceAngulaire(capRobot_t, angleRelevement3_t);
-  
-  // Conversion en angles conventionnels
-  angleGisement1 = 2*M_PI - angleGisement1_t;
-  angleGisement2 = 2*M_PI - angleGisement2_t;
-  angleGisement3 = 2*M_PI - angleGisement3_t;
+    
+  // Conversion en angles conventionnels et en degrés
+  angleGisement1 = (2*M_PI - angleGisement1_t)*180/M_PI;
+  angleGisement2 = (2*M_PI - angleGisement2_t)*180/M_PI;
+  angleGisement3 = (2*M_PI - angleGisement3_t)*180/M_PI;
   
 
 }
