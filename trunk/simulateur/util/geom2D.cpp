@@ -960,33 +960,59 @@ void calculerCercle ( double dtheta, double x1, double y1, double x2, double y2,
 		*R = 1e9;
 	}
 	
-	// Les deux équations du cercle passant par A et B
-	// (xA-x)^2 + (yA-y)^2 = R^2  (1)
-	// (xB-x)^2 + (yB-y)^2 = R^2  (2)
-	// (1)-(2) sous la forme y = A * x + B  (3)
-	double A = - (x2-x1)/(y2-y1);
-	double B = ( square(y2) - square(y1) + square(x2) - square(x1) ) / ( 2*(y2-y1) );
+	double xr1, xr2, yr1, yr2;
 	
-	//printf("A:%f B:%f\n", A, B);
+	double y21 = y2-y1;
+	double x21 = x2-x1;
 	
-	// On remplace y (3) dans l'équation (1)
-	// (1) avec (3) sous la forme Cx^2 + Dx + E = 0
-	double C = 1+square(A);
-	double D = -2*x1 - 2*A*(y1-B);
-	double E = square(x1) + square(y1-B) - square(*R);
-	
-	//printf("C:%f D:%f E:%f\n", C, D, E);
-	
-	// Résolution de l'équation en x^2 : discriminant et racines du polynomes
-	double delta = square(D) - 4*C*E;
-	//printf("delta:%f\n", delta);
-	
-	// On obtient deux centres possibles pour le cercle
-	double xr1 = (-D + sqrt(delta))/(2*C);
-	double xr2 = (-D - sqrt(delta))/(2*C);
-	
-	double yr1 = A * xr1 + B;
-	double yr2 = A * xr2 + B;
+	if ( valAbs(y21) > valAbs(x21) ) {
+		
+		// Les deux équations du cercle passant par A et B
+		// (xA-x)^2 + (yA-y)^2 = R^2  (1)
+		// (xB-x)^2 + (yB-y)^2 = R^2  (2)
+		// (1)-(2) sous la forme y = A * x + B  (3)
+		double A = - (x2-x1)/(y2-y1);
+		double B = ( square(y2) - square(y1) + square(x2) - square(x1) ) / ( 2*(y2-y1) );
+		
+		//printf("A:%f B:%f\n", A, B);
+		
+		// On remplace y (3) dans l'équation (1)
+		// (1) avec (3) sous la forme Cx^2 + Dx + E = 0
+		double C = 1+square(A);
+		double D = -2*x1 - 2*A*(y1-B);
+		double E = square(x1) + square(y1-B) - square(*R);
+		
+		//printf("C:%f D:%f E:%f\n", C, D, E);
+		
+		// Résolution de l'équation en x^2 : discriminant et racines du polynomes
+		double delta = square(D) - 4*C*E;
+		//printf("delta:%f\n", delta);
+		
+		// On obtient deux centres possibles pour le cercle
+		xr1 = (-D + sqrt(delta))/(2*C);
+		xr2 = (-D - sqrt(delta))/(2*C);
+		
+		yr1 = A * xr1 + B;
+		yr2 = A * xr2 + B;
+		
+	} else {
+		
+		double A = - (y2-y1)/(x2-x1);
+		double B = ( square(x2) - square(x1) + square(y2) - square(y1) ) / ( 2*(x2-x1) );
+		
+		double C = 1+square(A);
+		double D = -2*y1 - 2*A*(x1-B);
+		double E = square(y1) + square(x1-B) - square(*R);
+		
+		double delta = square(D) - 4*C*E;
+		
+		yr1 = (-D + sqrt(delta))/(2*C);
+		yr2 = (-D - sqrt(delta))/(2*C);
+		
+		xr1 = A * yr1 + B;
+		xr2 = A * yr2 + B;
+		
+	}
 	
 	//printf("C1 : %f %f\n", xr1, yr1);
 	//printf("C2 : %f %f\n", xr2, yr2);
