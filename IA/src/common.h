@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+extern bool use_gui;
+
 //pic frame
 #define TAILLE_TRAME 128
 #define TAILLE_PAQUET_PIC_PC_1 20

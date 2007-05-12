@@ -7,11 +7,14 @@ TEMPLATE = app
 CONFIG += qt thread x11
 QMAKE_CXXFLAGS_RELEASE += -g
 # Input
+PRECOMPILED_HEADER = CImg.h
 SOURCES += main.cpp gui.cpp serial.cpp trame_binary.cpp trame_out.cpp trame_in.cpp manager.cpp task_rt.cpp 
 SOURCES += comportement_test.cpp comportement_endofmatch.cpp comportement_navigation.cpp
-SOURCES += barillet.cpp temporal_sequence.cpp video.cpp traitement_cone.cpp
+SOURCES += barillet.cpp temporal_sequence.cpp video.cpp video-pwc.cpp traitement_cone.cpp
 HEADERS  = gui.h serial.h trame_binary.h common.h trame_out.h trame_in.h manager.h task_rt.h dummy_comportement.h
 HEADERS  +=  comportement.h comportement_defaut.h comportement_test.h comportement_endofmatch.h comportement_navigation.h
-HEADERS  += barillet.h temporal_sequence.h video.h traitement_cone.h
+HEADERS  += barillet.h temporal_sequence.h video.h video-pwc.h traitement_cone.h 
 
 # Command: /usr/lib/qt4/bin/qmake -spec /usr/share/doc/qt-4.1.4/mkspecs/linux-g++ -unix -o Makefile ia.pro
+
+
