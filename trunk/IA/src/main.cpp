@@ -34,6 +34,8 @@
 
 using namespace std;
 
+bool use_gui;
+
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
@@ -46,7 +48,7 @@ int main(int argc, char *argv[])
 
   const char * dev
     = cimg_option("-dev","/dev/ttyS0","RS232 device");
-  bool use_gui
+  use_gui
     = !(cimg_option("-nogui",false,"Starting without gui"));
 
 

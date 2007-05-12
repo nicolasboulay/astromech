@@ -68,7 +68,7 @@ bool video_t::_open(const string & s)
 
   if (-1 == stat (s.c_str(), &st)) {
     //fprintf (stderr, "Cannot identify '%s': %d, %s\n",
-    //     s.c_str(), errno, strerror (errno));
+	     //     s.c_str(), errno, strerror (errno));
     //exit (EXIT_FAILURE);
     return false;
   }
