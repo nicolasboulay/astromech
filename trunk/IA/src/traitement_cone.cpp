@@ -1,9 +1,11 @@
 #include"traitement_cone.h"
 #include "CImg.h"
 #include <QVector>
+#include <QList>
 #include <iostream>
 #include "common.h"
 #include <cmath>
+#include <cassert>
 using namespace cimg_library;
 
 traitement_cone_t::traitement_cone_t() //: camera("/dev/video",480/4,640/4)
@@ -57,7 +59,7 @@ void traitement_cone_t::run(){
       image->display(*raw_disp);
     }
     //seuillage(*image);
-    QVector<complex<double> > beacons(6+1,0.0); // beacons 3,4,5,6 leds
+    QVector<complex<double> > beacons(255,0.0); // beacons 3,4,5,6 leds
     seuillage(*image,220);
     find_the_4_beacons(*image,beacons);
     if(use_gui){
@@ -188,13 +190,17 @@ CImg<unsigned char> & traitement_cone_t::find_the_4_beacons(CImg<unsigned char>&
   // display for debugging
   //
   if(use_gui){
+    const unsigned char white[3] = {255,255,255};
+    const unsigned char red[3] = {255,0,0};
+    const unsigned char blue[3] = {0,0,255};
+    const unsigned char green[3] = {0,255,0};
   
     for(int i=2;i<barys.size();i++){
       complex<double> c=barys[i];
-      labels((int)c.real(),(int)c.imag(),1)=weight[i];
+      labels((int)c.real(),(int)c.imag(),1)=255;
+      labels.draw_text((int)c.real(),(int)c.imag(),white,0,11,1,"%i",i);
     }
   
-    const unsigned char white[3] = {255,255,255};
 
     int center_x=labels.dimx()/2;
     int center_y=labels.dimy()/2;
@@ -202,6 +208,12 @@ CImg<unsigned char> & traitement_cone_t::find_the_4_beacons(CImg<unsigned char>&
     labels.normalize(0,255)
       .draw_line(center_x,center_y,
 		 (int)beacons[3].real()+center_x,(int)beacons[3].imag()+center_y,white)
+      .draw_line(center_x,center_y,
+		 (int)beacons[4].real()+center_x,(int)beacons[4].imag()+center_y,red)
+      .draw_line(center_x,center_y,
+		 (int)beacons[5].real()+center_x,(int)beacons[5].imag()+center_y,blue)
+      .draw_line(center_x,center_y,
+		 (int)beacons[6].real()+center_x,(int)beacons[6].imag()+center_y,green)
       .draw_text(15,5,white,0,11,1,"%i obj !",nb_object).display(*label_disp);
   }
   ////////////////////////////////////////////////////////
@@ -233,42 +245,174 @@ void  traitement_cone_t::give_barycentre(CImg<unsigned char>&  labels, int nb_ob
 
 const double PI = 3.14159265358979323846;
 
- void  traitement_cone_t::find_alignement(QVector<complex<double> > & barys, 
+ void  traitement_cone_t::find_alignement(QVector<complex<double> > & all_barys, 
  					 QVector<int> & weight,
 					  QVector<complex<double> >& beacons)
 {
   complex<double> res;
-  double delta=5;
-  for(int i=2;i<barys.size();i++){
-    for(int j=i+1;j<barys.size();j++){
-      for(int k=j+1;k<barys.size();k++){
-// 	printf("(%i:%i:%i) %f %f %f / %f %f %f\n",i,j,k,
-// 	       fmod(arg(barys[i]-barys[j]),PI),
-// 	       fmod(arg(barys[i]-barys[k]),PI),
-// 	       fmod(arg(barys[j]-barys[k]),PI),
-// 	       abs(barys[i]-barys[j]),
-// 	       abs(barys[i]-barys[k]),
-// 	       abs(barys[j]-barys[k])
-// 	       );
+  //double delta=5;
+  QVector<complex<double> >  barys;
 
+  //
+  // elimination des taches trop grosses ou trop petite.
+  //
+  for(int i=2;i<weight.size();i++){
+    //if(weight[i] > 1 && weight[i] < 50) //DEBUG pour utiliser les halogènes
+      {
+      barys.append(all_barys[i]);
+    }
+  }  
+  
+  //
+  // Trouve les points colinéaires 
+  //
+  QList<QVector<int> > colin;
+  QVector<bool> crible(barys.size(),false);
+
+  for(int i=2;i<barys.size();i++){
+    if(crible.at(i)) continue;      
+    for(int j=i+1;j<barys.size();j++) {
+      if(crible.at(j)) continue;      
+      QVector<int> tmp(2,0);
+      tmp[0]=i;
+      tmp[1]=j;      
+      for(int k=j+1;k<barys.size();k++) {
 	//0.1 rad == 8° 
-	double diff = fmod(arg(barys[i]-barys[j]),PI) 
-	  - fmod(arg(barys[i]-barys[k]),PI);
-	if(diff < 0.1) {
-	  if(diff < delta){
-	    delta=diff;
-	    res=largest_difference(barys[i]-barys[j],
-				   barys[j]-barys[k],
-				   barys[i]-barys[k]);
-	  }
+	double diff = fabs(fmod(arg(barys[i]-barys[j]),PI) 
+	  - fmod(arg(barys[i]-barys[k]),PI));
+	//colinéaire ?
+	printf(" colinéarité: %i %i %i -> %f\n",i,j,k,diff);
+	if(diff < 0.06) {
+	  tmp.append(k);
+	  crible[k]=true;
 	}
       }
-      //      cout << endl; 
+      if(tmp.size() !=2){
+	crible[tmp.at(0)]=true;
+	crible[tmp.at(1)]=true;
+	colin.append(tmp);
+
+	printf(" colin!");
+	for(int jj=0;jj<tmp.size();jj++){
+	  printf(" %i ",tmp.at(jj));
+        }
+        printf("\n");
+      }
+    }
+  }
+  cout << endl;
+  //
+  // Reconnaissance des balises 
+  //
+  colinear_vector_to_beacon(colin, barys,beacons);
+
+//    for(int i=0;i<colin.size();i++){
+//      int index = colin[i].size();
+//      if (index > 6) index =6;
+//      beacons[index]=largest_difference(colin[i],barys);
+//    }
+
+//    if(use_gui){
+//      for(int i=0;i<colin.size();i++){
+//        int index = colin[i].size();
+//        printf("b %i: ",index);
+//        for(int j=0;j<colin[i].size();j++){
+// 	 printf("%i ",colin.at(i).at(j));
+//        }
+//        printf("\n");
+//      }
+//    }
+
+  return;
+}
+
+// récupère une liste de point aligné et rend la place des balises
+// En cas de plusieurs valeurs possibles, choix en fonction de l'écartement des points
+//
+
+void
+traitement_cone_t::colinear_vector_to_beacon(const QList<QVector<int> > & colin,
+					     const QVector<complex<double> > & barys,
+					     QVector<complex<double> >& beacons)
+{  
+
+  double n_min; 
+  double n_max;
+  complex<double> diff_min;
+  complex<double> diff_max;
+
+  for(int i=0;i<colin.size();i++){
+    // gestion du iéme alignement
+    min_max_norm_of_colinear_vector(colin[i],barys,n_min,n_max,diff_min,diff_max);
+
+    double ratio = n_max/n_min;
+    double intpart;
+    double fractpart = modf (ratio , &intpart);
+    int nb_points = colin[i].size();
+
+    cout << "identification [" << i << "]:" << n_min << "/"<< diff_max << " "  
+	 << n_max << "/"<<diff_max << "("
+	 << ratio << ":" << intpart << ":" << fractpart << ")" 
+	 << endl; 
+
+    if(fabs(ratio+(1-nb_points)) < 0.2){  // Guess: margin ?  
+      // test si intpart est proche de colin[i]. size() ?
+      beacons[(int) intpart+1]=diff_max;
+      printf("validé beacon[%i]: %f (%i) %f\n", (int)intpart+1, fractpart, colin[i].size()
+	     ,ratio+(1-nb_points));
+    }
+  }
+  
+  // for(int i=0;i<colin.size();i++){
+//      int index = colin[i].size();
+//      if (index > 6) index =6;
+//      beacons[index]=largest_difference(colin[i],barys);
+//    }
+
+    if(use_gui){
+      for(int i=0;i<colin.size();i++){
+        int index = colin[i].size();
+        printf("b %i: ",index);
+        for(int j=0;j<colin[i].size();j++){
+ 	 printf("%i ",colin.at(i).at(j));
+        }
+        printf("\n");
+      }
+    }
+
+}
+
+void traitement_cone_t::min_max_norm_of_colinear_vector(const QVector<int> & index,
+							const QVector<complex<double> >  & barys,
+							double & _min, double & _max,
+							complex<double> & c_min,complex<double> & c_max)
+{
+
+  double n_min=1000.0;
+  double n_max=0.0;
+  complex<double> v_min=0.0;
+  complex<double> v_max=0.0;
+
+  // récupération de la plus grande et de la plus petit norme
+  for(int i=0;i<index.size();i++){
+    for(int j=i+1;j<index.size();j++){
+      complex<double> c=barys.at(index.at(i))-barys.at(index.at(j));
+      double n = abs(c);
+      if(n > n_max){
+	v_max = c;
+	n_max = n; 
+      }
+      if(n < n_min){
+	v_min = c;
+	n_min = n; 
+      }
     }
   }
 
-  beacons[3]=res;
-  return;
+  _min = n_min;
+  _max = n_max;
+  c_min=v_min;
+  c_max=v_max;
 }
 
 complex<double> 
@@ -291,5 +435,26 @@ traitement_cone_t::largest_difference(complex<double> a,
   if(n2 <n3 ){
     res=c3;
   }
+  return res;
+}
+
+complex<double> 
+traitement_cone_t::largest_difference(QVector<int> index,
+				      QVector<complex<double> >  barys)
+{
+  double delta=0.0;
+  complex<double> res=0.0;
+
+  for(int i=0;i<index.size();i++){
+    for(int j=i+1;j<index.size();j++){
+      complex<double> c=barys.at(index.at(i))-barys.at(index.at(j));
+      double n =abs(c);
+      if(n > delta){
+	res=c;
+	delta=n;
+      }
+    }
+  }
+
   return res;
 }
