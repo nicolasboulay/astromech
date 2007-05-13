@@ -6,6 +6,7 @@
 using namespace std;
 
 
+
 /*Obstacles::Obstacles(string fichierObstacles,Trace * t)
 {
   trace = t;

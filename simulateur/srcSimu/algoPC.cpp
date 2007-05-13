@@ -101,8 +101,8 @@ void AlgoPC::execute(int tempsCourant_ms)
     
     algoPlanifTraj->calculeTrajectoire(//IN
                                        tableDesObstacles,
-                                       wayPointDepart,
-			               wayPointArrivee,
+                                       &wayPointDepart,
+			               &wayPointArrivee,
 			               //OUT
 			               listeWP);
     
