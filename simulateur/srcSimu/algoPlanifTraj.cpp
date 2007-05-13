@@ -68,6 +68,19 @@ AlgoPlanifTrajectoire::~AlgoPlanifTrajectoire(void)
   message = "debut";
   trace->print(src,cl,"~AlgoPlanifTrajectoire",message);
   
+  for ( unsigned int i = 0 ; i < this->segBorduresTerrain.size() ; i++ ) {
+	//printf("**** Segments2D : %d/%d\n", Segment2D::nbPresents, Segment2D::nbCrees);
+	//printf("**** Points2D   : %d/%d\n", Point2D::nbPtPresents, Point2D::nbPtCrees);
+	Segment2D *seg = this->segBorduresTerrain[i];
+	Point2D *pt1 = seg->pt1;
+	Point2D *pt2 = seg->pt2;
+	delete(seg);
+	delete(pt1);
+	delete(pt2);
+	//printf("**** Segments2D : %d/%d\n", Segment2D::nbPresents, Segment2D::nbCrees);
+	//printf("**** Points2D   : %d/%d\n", Point2D::nbPtPresents, Point2D::nbPtCrees);
+  }
+  
   message = "fin";
   trace->print(src,cl,"~AlgoPlanifTrajectoire",message);
 }
@@ -189,8 +202,8 @@ int AlgoPlanifTrajectoire::CalculerWaypointWaypoint (
   Arc2D *arc2R = new Arc2D(wp2, -1, rayon2);
   
   // Initilialisation
-  Segment2D *segVide  = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
-  Segment2D *segUtile = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
+  Segment2D *segVide  = new Segment2D();
+  Segment2D *segUtile = new Segment2D();
   
   // Calcul des segments d'intersection
   // SegmentLL
@@ -221,6 +234,13 @@ int AlgoPlanifTrajectoire::CalculerWaypointWaypoint (
 	}
   }
   
+  delete(arc1L);
+  delete(arc1R);
+  delete(arc2L);
+  delete(arc2R);
+  delete(segUtile);
+  delete(segVide);
+  
   return 0;
   
 }
@@ -239,9 +259,9 @@ int AlgoPlanifTrajectoire::CalculerObstacleObstacle (
   Arc2D *arc2 = new Arc2D(obs2->centreObstacle, obs2->rayonObstacle_m + this->rayonRobot_m + DIST_PASSAGE_OBSTACLE, 0, 2*M_PI);
   
   // Initilialisation
-  Segment2D *segVide  = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
-  Segment2D *segUtile1 = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
-  Segment2D *segUtile2 = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
+  Segment2D *segVide  = new Segment2D();
+  Segment2D *segUtile1 = new Segment2D();
+  Segment2D *segUtile2 = new Segment2D();
   
   // Calcul des segments d'intersection
   // SegmentLL et SegmentRR (en même temps)
@@ -263,6 +283,12 @@ int AlgoPlanifTrajectoire::CalculerObstacleObstacle (
 		segRL->copySegment(segUtile2);
 	}
   }
+  
+  delete(arc1);
+  delete(arc2);
+  delete(segVide);
+  delete(segUtile1);
+  delete(segUtile2);
   
   return 0;
   
@@ -298,6 +324,7 @@ int AlgoPlanifTrajectoire::AddLegCLC ( WayPoint *wp1, Arc2D *arc1, int sens1,  W
 		antiCol = this->CollisionArc(arc42, tableDesObstacles); 
 	}
 	
+	int returnCode;
 	if ( antiCol == 0 ) {
 		WayPoint *wp3 = new WayPoint(seg->pt1->x, seg->pt1->y, rad2deg(convertirAngle(seg->getAngle())), 0);
 		this->AjouterWayPoint(wp3);
@@ -313,10 +340,16 @@ int AlgoPlanifTrajectoire::AddLegCLC ( WayPoint *wp1, Arc2D *arc1, int sens1,  W
 		
 		this->matrice[wp3->id][wp4->id] = seg->getLongueur(); // mise a jour de la matrice pour l'arc wp3-wp4
 		
-		return 1; // insertion OK
+		returnCode = 1; // insertion OK
 	} else {
-		return 0; // insertion non réalisée car collision
+		returnCode = 0; // insertion non réalisée car collision
 	}
+	
+	delete(arc13);
+	delete(arc42);
+	
+	return returnCode;
+	
 }
 
 int AlgoPlanifTrajectoire::AddLegCL ( WayPoint *wp1, Arc2D *arc1, int sens1, Segment2D *seg, vectorObstacles &tableDesObstacles, Obstacle *obs) {
@@ -337,7 +370,9 @@ int AlgoPlanifTrajectoire::AddLegCL ( WayPoint *wp1, Arc2D *arc1, int sens1, Seg
 		}
 		antiCol = this->CollisionArc(arc12, tableDesObstacles); 
 	}
-		
+	
+	int returnCode;
+	
 	if ( antiCol == 0 ) {
 		WayPoint *wp2 = new WayPoint(seg->pt1->x, seg->pt1->y, rad2deg(convertirAngle(seg->getAngle())), 0);
 		WayPoint *wp3 = new WayPoint(seg->pt2->x, seg->pt2->y, wp2->cap_deg, 0);
@@ -353,10 +388,15 @@ int AlgoPlanifTrajectoire::AddLegCL ( WayPoint *wp1, Arc2D *arc1, int sens1, Seg
 		
 		obs->waypoints.push_back(wp3); // On ajoute à l'obstacle ce point pour ensuite faire les liens sur l'obstacle
 		
-		return 1; // insertion OK
+		returnCode = 1; // insertion OK
 	} else {
-		return 0; // insertion non réalisée car collision
+		returnCode = 0; // insertion non réalisée car collision
 	}
+	
+	delete(arc12);
+	
+	return returnCode;
+	
 }
 
 int AlgoPlanifTrajectoire::AddLegLC ( WayPoint *wp2, Arc2D *arc2, int sens2, Segment2D *seg, vectorObstacles &tableDesObstacles, Obstacle *obs) {
@@ -378,6 +418,8 @@ int AlgoPlanifTrajectoire::AddLegLC ( WayPoint *wp2, Arc2D *arc2, int sens2, Seg
 		antiCol = this->CollisionArc(arc32, tableDesObstacles); 
 	}
 	
+	int returnCode;
+	
 	if ( antiCol == 0 ) {
 		WayPoint *wp1 = new WayPoint(seg->pt1->x, seg->pt1->y, rad2deg(convertirAngle(seg->getAngle())), 0);
 		WayPoint *wp3 = new WayPoint(seg->pt2->x, seg->pt2->y, wp1->cap_deg, 0);
@@ -393,10 +435,15 @@ int AlgoPlanifTrajectoire::AddLegLC ( WayPoint *wp2, Arc2D *arc2, int sens2, Seg
 		
 		obs->waypoints.push_back(wp1); // On ajoute à l'obstacle
 		
-		return 1; // insertion OK
+		returnCode = 1; // insertion OK
 	} else {
-		return 0; // insertion non réalisée car collision
+		returnCode = 0; // insertion non réalisée car collision
 	}
+	
+	delete(arc32);
+	
+	return returnCode;
+	
 }
 
 
@@ -445,7 +492,7 @@ int AlgoPlanifTrajectoire::CalculerWaypointObstacle ( WayPoint *wp1, double rayo
 
   Arc2D *arc1L = new Arc2D(wp1,  1, rayon1);
   Arc2D *arc1R = new Arc2D(wp1, -1, rayon1);
-  Arc2D *arc2 = new Arc2D(obs->centreObstacle, obs->rayonObstacle_m + this->rayonRobot_m + DIST_PASSAGE_OBSTACLE, 0, 2*M_PI);
+  Arc2D *arc2  = new Arc2D(obs->centreObstacle, obs->rayonObstacle_m + this->rayonRobot_m + DIST_PASSAGE_OBSTACLE, 0, 2*M_PI);
   
   // Initilialisation
   Segment2D *segVide  = new Segment2D(new Point2D(-1,-1), new Point2D(-1,-1));
@@ -479,6 +526,12 @@ int AlgoPlanifTrajectoire::CalculerWaypointObstacle ( WayPoint *wp1, double rayo
 		segRL->copySegment(segUtile);
 	}
   }
+  
+  delete(arc1L);
+  delete(arc1R);
+  delete(arc2);
+  delete(segVide);
+  delete(segUtile);
   
   return 0;
   
@@ -523,6 +576,12 @@ int AlgoPlanifTrajectoire::CalculerObstacleWaypoint ( Obstacle *obs, WayPoint *w
 	}
   }
   
+  delete(arc1);
+  delete(arc2L);
+  delete(arc2R);
+  delete(segVide);
+  delete(segUtile);
+  
   return 0;
   
 }
@@ -552,13 +611,14 @@ int AlgoPlanifTrajectoire::CollisionArc ( Arc2D *arc, vectorObstacles &tableDesO
 			printf("COLLISION de l'arc avec un obstacle\n");
 			delete(pt1);
 			delete(pt2);
+			delete(arc2);
 			return 1;
 		}
+		delete(arc2);
 	}
 	
 	delete(pt1);
 	delete(pt2);
-	
 	return 0; // Pas de collision
 	
 }
@@ -591,11 +651,12 @@ int AlgoPlanifTrajectoire::CollisionSegment ( Segment2D *seg, vectorObstacles &t
 		if ( arc->TestIntersectionSegment(seg, pt, pt2) > 0 ) {
 			delete(pt);
 			delete(pt2);
-			//delete(arc);
+			delete(arc);
 			printf("COL du segment avec un obstacle\n");
 			return 1;
 		}
-		//delete(arc);
+		delete(arc);
+		
 	}
 	
 	delete(pt);
