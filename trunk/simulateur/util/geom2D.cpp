@@ -242,6 +242,10 @@ double Point2D::calculeCap_rad(Point2D * ptDest)
 /*************************************************************************/
 /*                                Segment2D                              */
 /*************************************************************************/
+
+int Segment2D::nbCrees = 0;
+int Segment2D::nbPresents = 0;
+
 Segment2D::Segment2D(TiXmlElement* pSeg)
 {
   TiXmlElement* pPt;
@@ -254,25 +258,37 @@ Segment2D::Segment2D(TiXmlElement* pSeg)
   pPt=pPt->NextSiblingElement("Point2D");
   cout << "point2" <<endl;
   pt2 = new Point2D(pPt);
+  nbCrees++;
+  nbPresents++;
+  deletePoints = 1;
 }
 
 Segment2D::Segment2D()
 {
 	pt1 = new Point2D(0,0);
 	pt2 = new Point2D(0,0);
+	nbCrees++;
+	nbPresents++;
+	deletePoints = 1;
 }
 
 Segment2D::Segment2D(Point2D * ptA, Point2D * ptB)
 {
   pt1 = ptA;
   pt2 = ptB;
+  nbCrees++;
+  nbPresents++;
+  deletePoints = 0;
 }
 
 Segment2D::~Segment2D(void)
 {
+  nbPresents--;
   //cout << "delete Seg2D" << endl;
-  delete (pt1);
-  delete (pt2);
+  if ( deletePoints == 1 ) {
+    delete (pt1);
+    delete (pt2);
+  }
 }
 
 Segment2D * Segment2D::creeSegmentRT(Point2D * centreGraviteRT, double * att_rad)
@@ -437,6 +453,10 @@ double Segment2D::DistancePoint ( Point2D *point ) {
   
   double produitVectoriel = vectAB->ProduitVectoriel(vectAC);
   double normeAB = vectAB->norme();
+  
+  delete(vectAB);
+  delete(vectAC);
+  
   if ( normeAB <= 0 ) {
     return 0;
   } else {
@@ -459,23 +479,32 @@ double Segment2D::getLongueur(void) {
 /*************************************************************************/
 /*                                Vecteur                                */
 /*************************************************************************/
+int Vecteur2D::nbCrees = 0;
+int Vecteur2D::nbPresents = 0;
+
 Vecteur2D::Vecteur2D(double x_i, double y_i) {
   x = x_i;
   y = y_i;
+  nbCrees++;
+  nbPresents++;
 }
 
 Vecteur2D::Vecteur2D(Segment2D *seg) {
   x = seg->pt2->x - seg->pt1->x;
   y = seg->pt2->y - seg->pt1->y;
+  nbCrees++;
+  nbPresents++;
 }
 
 Vecteur2D::Vecteur2D(Point2D *pt1, Point2D *pt2 ) {
   x = pt2->x - pt1->x;
   y = pt2->y - pt1->y;
+  nbCrees++;
+  nbPresents++;
 }
 
 Vecteur2D::~Vecteur2D(void) {
-
+  nbPresents--;
 }
 
 // Calcule le produit vectoriel projeté sur Z : this ^ vect
@@ -501,6 +530,9 @@ double Vecteur2D::norme(void) {
 /*************************************************************************/
 /*                                Arc2D                                  */
 /*************************************************************************/
+int Arc2D::nbCrees = 0;
+int Arc2D::nbPresents = 0;
+
 Arc2D::Arc2D(Point2D * ptA, double rayonA, double thetaA, double thetaB)
 {
   pt = ptA;
@@ -508,6 +540,8 @@ Arc2D::Arc2D(Point2D * ptA, double rayonA, double thetaA, double thetaB)
   angleA = thetaA;
   angleB = thetaB;
   longueur = rayon * DistanceAngulaire(angleB, angleA);
+  nbCrees++;
+  nbPresents++;
 }
 
 // 1 = left, 2 = right
@@ -519,6 +553,8 @@ Arc2D::Arc2D(WayPoint *WP, double sens, double rayonA)
   pt = new Point2D(0,0);
   pt->x = WP->pt->x + rayon * cos(convertirAngle(deg2rad(WP->cap_deg)) + sens * M_PI/2);
   pt->y = WP->pt->y + rayon * sin(convertirAngle(deg2rad(WP->cap_deg)) + sens * M_PI/2);
+  nbCrees++;
+  nbPresents++;
 }
 
 Arc2D::Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayonA)
@@ -532,12 +568,15 @@ Arc2D::Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayonA)
   longueur = rayon * DistanceAngulaire(angleA, angleB);
   delete(vecOA);
   delete(vecOB);
+  nbCrees++;
+  nbPresents++;
 }
 
 Arc2D::~Arc2D(void)
 {
   //cout << "delete Arc2D" << endl;
-  delete (pt);
+  //delete (pt);
+  nbPresents--;
 }
 
 // Tester la collision avec un segment
@@ -573,6 +612,9 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
   double c = square(vectOA->x) + square(vectOA->y) - square(rayon);
   double d = square(b) - 4 * a * c;
   
+  delete(vectAB);
+  delete(vectOA);
+  
   if ( d < 0 ) { // impossible, mais bon...
     printf("*** IMPOSSIBLE ***\n");
     return 0;
@@ -601,7 +643,7 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
     Point2D *ptInter = new Point2D(seg->pt1->x + k1 * (seg->pt2->x - seg->pt1->x), seg->pt1->y + k1 * (seg->pt2->y - seg->pt1->y));
     Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
     double theta = vecInter->angle();
-    
+    delete(vecInter);
 	//printf("Theta : %f, [%f %f] [%f %f] [%f %f]\n", theta, ptInter->x, ptInter->y, seg->pt1->x, seg->pt1->y, seg->pt2->x, seg->pt2->y);
 	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
@@ -610,8 +652,9 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
 	  ptInter1->x = ptInter->x;
 	  ptInter1->y = ptInter->y;
     }
-  
+    delete(ptInter);
   }
+  
     
   // On regarde si le deuxième point appartient à l'arc de cercle
   if ( k2 > 0 && k2 < 1 ) {
@@ -619,7 +662,7 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
     Point2D *ptInter = new Point2D(seg->pt1->x + k2 * (seg->pt2->x - seg->pt1->x), seg->pt1->y + k2 * (seg->pt2->y - seg->pt1->y));
     Vecteur2D *vecInter = new Vecteur2D(pt, ptInter);
     double theta = vecInter->angle();
-    
+    delete(vecInter);
 	//printf("Theta : %f, [%f %f]\n", theta, ptInter->x, ptInter->y);
 	
     // Si l'angle du point est dans le secteur balayé par l'arc de cercle, contact !
@@ -632,9 +675,9 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
 			ptInter2->x = ptInter->x;
 			ptInter2->y = ptInter->y;
 		}
-		
     }
-  
+	delete(ptInter);
+	
   }
   
   return NbPoints;
@@ -645,13 +688,16 @@ int Arc2D::TestIntersectionArc ( Arc2D *arc2, Point2D *ptInter1, Point2D *ptInte
 	// si l'écart des centres des arc est supérieur à la somme des rayons, alors aucun risque de collision
 	Segment2D *seg = new Segment2D(this->pt, arc2->pt);
 	if ( seg->getLongueur() > this->rayon + arc2->rayon ) {
+		delete(seg);
 		return 0;
 	}
 	
 	// si les cercles sont l'un dans l'autre, si une des deux conditions sont valides alors on a un cercle dans l'autre
 	if ( this->rayon > arc2->rayon + seg->getLongueur() || arc2->rayon > this->rayon + seg->getLongueur() ) {
+		delete(seg);
 		return 0;
 	}
+	delete(seg);
 	
 	calculerIntersectionCercles(this->pt->x, this->pt->y, this->rayon, arc2->pt->x, arc2->pt->y, arc2->rayon, 
 							&(ptInter1->x), &(ptInter1->y), &(ptInter2->x), &(ptInter2->y));
@@ -664,6 +710,9 @@ int Arc2D::TestIntersectionArc ( Arc2D *arc2, Point2D *ptInter1, Point2D *ptInte
 	Vecteur2D *vec21 = new Vecteur2D(arc2->pt, ptInter1);
 	double angle21 = vec21->angle();
 	
+	delete(vec11);
+	delete(vec21);
+	
 	// Si le point d'intersection ptInter1 appartient aux deux arcs de cercle alors, il a intersection
 	if ( DistanceAngulaire(this->angleA, angle11) < DistanceAngulaire(this->angleA, this->angleB) &&
 	     DistanceAngulaire(arc2->angleA, angle21) < DistanceAngulaire(arc2->angleA, arc2->angleB) ) {
@@ -675,6 +724,9 @@ int Arc2D::TestIntersectionArc ( Arc2D *arc2, Point2D *ptInter1, Point2D *ptInte
 	double angle12 = vec12->angle();
 	Vecteur2D *vec22 = new Vecteur2D(arc2->pt, ptInter2);
 	double angle22 = vec22->angle();
+	
+	delete(vec12);
+	delete(vec22);
 	
 	// Si le point d'intersection ptInter1 appartient aux deux arcs de cercle alors, il a intersection
 	if ( DistanceAngulaire(this->angleA, angle12) < DistanceAngulaire(this->angleA, this->angleB) &&
@@ -696,6 +748,8 @@ int Arc2D::CalculerSegmentsTangents ( Arc2D *other, Segment2D *segLL, Segment2D 
   double distAB = vectAB->norme();
   double R1 = this->rayon;
   double R2 = other->rayon;
+  
+  delete(vectAB);
   
   if ( ( R1 + distAB < R2 ) || ( R2 + distAB < R1 ) ) {
     return 0;
@@ -727,6 +781,7 @@ void Arc2D::CalculerCheminLL ( Arc2D *other, Segment2D *segLL, Segment2D *segRR 
   
   // Ecart d'angle entre la droite D1 et de la droite tangente D2
   double delta = asin( ( other->rayon - this->rayon ) / vectO1O2->norme() );
+  delete(vectO1O2);
   
   // Calcul des angles dans le repère du centre des cercles
   double angle1 = angleO1O2 - delta - M_PI/2;
@@ -764,6 +819,7 @@ void Arc2D::CalculerCheminLR ( Arc2D *other, Segment2D *segLR, Segment2D *segRL 
   
   // Ecart d'angle entre la droite D1 et de la droite tangente D2
   double delta = asin( ( other->rayon + this->rayon ) / vectO1O2->norme() );
+  delete(vectO1O2);
   
   // Calcul des angles dans le repère du centre des cercles
   double angle1R = angleO1O2 - delta + M_PI/2;
@@ -965,7 +1021,7 @@ WayPoint::WayPoint(TiXmlElement* pWP)
 
 WayPoint::~WayPoint(void)
 {
-  delete pt;
+  //delete pt;
 }
 WayPoint* WayPoint::operator =(WayPoint* wp)
 {
@@ -981,11 +1037,16 @@ int WayPoint::cotePoint ( Point2D *pt ) {
 	Vecteur2D *vec1 = new Vecteur2D(cos(convertirAngle(deg2rad(this->cap_deg))), sin(convertirAngle(deg2rad(this->cap_deg))));
 	Vecteur2D *vec2 = new Vecteur2D(this->pt, pt);
 	
+	int returnCode;
 	if ( vec1->ProduitVectoriel(vec2) > 0 ) {
-		return COTE_GAUCHE;
+		returnCode = COTE_GAUCHE;
 	} else {
-		return COTE_DROIT;
+		returnCode = COTE_DROIT;
 	}
+	
+	delete(vec1);
+	delete(vec2);
+	return returnCode;
 	
 }
 

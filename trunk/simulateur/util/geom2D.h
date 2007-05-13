@@ -68,7 +68,9 @@ class Segment2D
   protected: //accessible uniquement par héritage
         
   public : // accessible partout
-  Point2D * pt1;
+    static int nbCrees;
+	static int nbPresents;
+    Point2D * pt1;
     Point2D * pt2;
     
 	Segment2D();
@@ -82,6 +84,7 @@ class Segment2D
     void copySegment(Segment2D *seg);
 	double getAngle(void);
 	double getLongueur(void);
+	char deletePoints;
 };
 
 class Vecteur2D
@@ -90,8 +93,10 @@ class Vecteur2D
   protected:
   
   public:
-  double x;
-  double y;
+    static int nbCrees;
+	static int nbPresents;
+    double x;
+    double y;
   
   Vecteur2D(double x_i, double y_i);
   Vecteur2D(Segment2D *seg);
@@ -111,6 +116,8 @@ class Arc2D
   protected:
 
   public:
+    static int nbCrees;
+	static int nbPresents;
   Point2D * pt;
   double rayon;
   double angleA;
