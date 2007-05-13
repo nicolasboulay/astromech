@@ -12,11 +12,13 @@ class TiXmlDocument;
 class Trace;
 class Segment2D;
 class Point2D;
+class WayPoint;
 class TiXmlElement;
 
 typedef vector<Segment2D *> vectorSegment2D;
 typedef vector<Point2D *> vectorpoint2D;
 typedef vector<int> vectorInt;
+typedef vector<WayPoint *> vectorWayPoint;
 
 class Obstacle
 {
@@ -25,6 +27,8 @@ class Obstacle
   public : // accessible partout
     Point2D * centreObstacle;
     double rayonObstacle_m;
+	vectorWayPoint waypoints;
+	//vectorWayPoint waypointsR;
     //Obstacles(string fichierObstacles, Trace * t);
     Obstacle(double xCentreObstacle_m,
               double yCentreObstacle_m,
