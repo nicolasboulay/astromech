@@ -18,7 +18,7 @@
 }
 
  comportement_result_t 
-comportement_test_t::execute(trame_in_t tin,  
+comportement_test_t::execute(const trame_in_t & tin,  
 			     internal_state_t & state) 
 {
   for(int n=0;n<REFEREE_NUMBER;n++){

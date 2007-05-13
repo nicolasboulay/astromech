@@ -36,7 +36,7 @@ double tick_convert_to_second(qulonglong time, qulonglong onesecond)
 }
 
 comportement_result_t 
-comportement_endofmatch_t::execute(trame_in_t tin,  
+comportement_endofmatch_t::execute(const trame_in_t & tin,  
 			     internal_state_t & state) 
 { 
   QTextStream qout(stdout);
