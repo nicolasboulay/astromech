@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+#define COTE_GAUCHE 1
+#define COTE_DROIT 2
+
 using namespace std;
 
 class TiXmlElement;
@@ -14,9 +17,11 @@ class Segment2D;
 class Vecteur2D;
 class Arc2D;
 class Boite2D;
-class Waypoint2D;
+class WayPoint;
 class Branche;
+
 typedef vector<Segment2D *> vectorSegment2D;
+typedef vector<WayPoint *> vectorWayPoint;
 
 double max(double x, double y);
 double min(double x, double y);
@@ -26,8 +31,9 @@ void normalise0_2PI(double & angle_rad);
 void normaliseMPI_PPI(double & angle_rad);
 double valAbs(double & valeur);
 double convertirAngle ( double angle_rad );
+double rad2deg ( double angle_rad );
+double deg2rad ( double angle_deg );
 double DistanceAngulaire(double AngleA, double AngleB);
-
 
 class Point2D
 {
@@ -64,7 +70,8 @@ class Segment2D
   public : // accessible partout
   Point2D * pt1;
     Point2D * pt2;
-
+    
+	Segment2D();
     Segment2D(TiXmlElement* pSeg);
     Segment2D(Point2D * pt1, Point2D * pt2);
     ~Segment2D(void);
@@ -73,6 +80,8 @@ class Segment2D
     int TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2D * ptInter);
     double DistancePoint(Point2D *point);
     void copySegment(Segment2D *seg);
+	double getAngle(void);
+	double getLongueur(void);
 };
 
 class Vecteur2D
@@ -86,7 +95,7 @@ class Vecteur2D
   
   Vecteur2D(double x_i, double y_i);
   Vecteur2D(Segment2D *seg);
-  Vecteur2D(Point2D *pt1, Point2D *pt2);
+  Vecteur2D(Point2D *pt1, Point2D *pt2); // vecteur pt1 pt2
   ~Vecteur2D(void);
   double ProduitVectoriel(Vecteur2D *vect);
   double ProduitScalaire(Vecteur2D *vect);
@@ -113,6 +122,7 @@ class Arc2D
   Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayon);
   ~Arc2D(void);
   int TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D *ptInter2 );
+  int TestIntersectionArc ( Arc2D *arc2, Point2D *ptInter1, Point2D *ptInter2 );
   int CalculerSegmentsTangents ( Arc2D *other, Segment2D *segLL, Segment2D *segRR, Segment2D *segLR, Segment2D *segRL );
   void CalculerCheminLL ( Arc2D *other, Segment2D *segLL, Segment2D *segRR );
   void CalculerCheminLR ( Arc2D *other, Segment2D *segLR, Segment2D *segRL );
@@ -146,11 +156,12 @@ class WayPoint
   double cap_deg;
   double vitesse_m_par_s;
   unsigned char controlByte;
+  int id;
   WayPoint(double x_m, double y_m, double cap_en_deg, double vitesse_m_par_s);
   WayPoint(TiXmlElement* pWP);
   ~WayPoint(void);
   WayPoint* operator = (WayPoint* wp);
-
+  int cotePoint(Point2D *pt);
 };
 
 class Branche
@@ -175,5 +186,16 @@ double produitVectoriel ( double x1, double y1, double x2, double y2 );
 void calculerCercle ( double dtheta, double x1, double y1, double x2, double y2, double *x0, double *y0, double *R);
 void calculerIntersectionCercles( double x1, double y1, double R1, double x2, double y2, double R2, double *xi1, double *yi1, double *xi2, double *yi2);
 void calculerPositionTrigo(double xBalise, double yBalise, double xC1, double yC1, double R1, double xC2, double yC2, double R2, double *xP, double *yP);
+
+class Vertex
+{
+  protected:
+  
+  public:
+	WayPoint *wp;
+	int id;
+	double distDepart;
+
+};
 
 #endif

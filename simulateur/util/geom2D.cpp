@@ -44,8 +44,12 @@ void normalise0_360_100eme_deg(double & angle_deg)
 }
 void normalise0_2PI(double & angle_rad)
 {
-  while (angle_rad < 0){angle_rad+=2*M_PI;}
-  while (angle_rad >= 2*M_PI){angle_rad-=2*M_PI;}
+  while ( angle_rad < 0 ) {
+	angle_rad += 2*M_PI;
+  }
+  while ( angle_rad >= 2*M_PI ) {
+    angle_rad -= 2*M_PI;
+  }
 }
 void normaliseMPI_PPI(double & angle_rad)
 {
@@ -72,14 +76,33 @@ double convertirAngle ( double angle_rad )
   return angle_conv;
 }
 
+double rad2deg ( double angle_rad ) {
+	return angle_rad*180/M_PI;
+}
+
+double deg2rad ( double angle_deg ) {
+	return angle_deg*M_PI/180;
+}
+
 /* Fonction calcul de la distance angulaire entre deux angles normalisés [0,2*PI] */
+/* ATTENTION : ne pas utiliser normalise0_2PI qui recentre 2M_PI sur 0 ce qui pose problème sur un arc
+formant un cercle complet, risque de collision avec les obstacles */
 double DistanceAngulaire ( double AngleA, double AngleB ) {
   
+  double angle = AngleB-AngleA;
+  if ( angle < 0 ) {
+	angle += 2*M_PI;
+  } else if ( angle > 2*M_PI ) {
+	angle -= 2*M_PI;
+  }
+  
+  return angle;
+  /*
   if ( AngleB > AngleA ) {
     return AngleB - AngleA;
   } else {
     return 2*M_PI + AngleB - AngleA;
-  }
+  }*/
   
 } /* fin DistanceAngulaire */
 
@@ -231,6 +254,12 @@ Segment2D::Segment2D(TiXmlElement* pSeg)
   pPt=pPt->NextSiblingElement("Point2D");
   cout << "point2" <<endl;
   pt2 = new Point2D(pPt);
+}
+
+Segment2D::Segment2D()
+{
+	pt1 = new Point2D(0,0);
+	pt2 = new Point2D(0,0);
 }
 
 Segment2D::Segment2D(Point2D * ptA, Point2D * ptB)
@@ -403,16 +432,28 @@ int Segment2D::TestIntersection(Segment2D * seg2,bool calculeIntersection,Point2
 double Segment2D::DistancePoint ( Point2D *point ) {
 
   Vecteur2D *vectAB = new Vecteur2D(this);
-  Vecteur2D *vectAC = new Vecteur2D(point->x - this->pt1->x, point->y - this->pt1->y);
+  Vecteur2D *vectAC = new Vecteur2D(this->pt1, point);
+  //Vecteur2D *vectAC = new Vecteur2D(point->x - this->pt1->x, point->y - this->pt1->y);
   
   double produitVectoriel = vectAB->ProduitVectoriel(vectAC);
   double normeAB = vectAB->norme();
   if ( normeAB <= 0 ) {
-    return -1;
+    return 0;
   } else {
-    return produitVectoriel / vectAB->norme();
+	double valeur = produitVectoriel / normeAB;
+    return valAbs(valeur);
   }
   
+}
+
+double Segment2D::getAngle (void) {
+	double angle = atan2(this->pt2->y - this->pt1->y, this->pt2->x - this->pt1->x);
+	normalise0_2PI(angle);
+	return angle;
+}
+
+double Segment2D::getLongueur(void) {
+	return sqrt(square(pt2->x - pt1->x) + square(pt2->y - pt1->y));
 }
 
 /*************************************************************************/
@@ -476,8 +517,8 @@ Arc2D::Arc2D(WayPoint *WP, double sens, double rayonA)
   angleA = 0;
   angleB = 2 * M_PI;
   pt = new Point2D(0,0);
-  pt->x = WP->pt->x + rayon * cos(WP->cap_deg * M_PI/180 + sens * M_PI/2);
-  pt->y = WP->pt->y + rayon * sin(WP->cap_deg * M_PI/180 + sens * M_PI/2);
+  pt->x = WP->pt->x + rayon * cos(convertirAngle(deg2rad(WP->cap_deg)) + sens * M_PI/2);
+  pt->y = WP->pt->y + rayon * sin(convertirAngle(deg2rad(WP->cap_deg)) + sens * M_PI/2);
 }
 
 Arc2D::Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayonA)
@@ -488,7 +529,9 @@ Arc2D::Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayonA)
   angleA = vecOA->angle();
   Vecteur2D *vecOB = new Vecteur2D(ptO, ptB);
   angleB = vecOB->angle();
-  longueur = rayon * DistanceAngulaire(angleB, angleA);
+  longueur = rayon * DistanceAngulaire(angleA, angleB);
+  delete(vecOA);
+  delete(vecOB);
 }
 
 Arc2D::~Arc2D(void)
@@ -502,8 +545,8 @@ Arc2D::~Arc2D(void)
 int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D *ptInter2 ) {
 
   // Si distance supérieure entre le segment et le centre supérieure au rayon de l'arc de cercle
-  if ( seg->DistancePoint(pt) > rayon ) {
-    //printf("Trop eloigne du centre de l'arc\n");
+  if ( seg->DistancePoint(this->pt) > this->rayon ) {
+    printf("Trop eloigne du centre de l'arc %f pour %f\n", seg->DistancePoint(this->pt), this->rayon);
     return 0;
   }
     
@@ -531,14 +574,14 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
   double d = square(b) - 4 * a * c;
   
   if ( d < 0 ) { // impossible, mais bon...
-    //printf("Impossible\n");
-    return FALSE;
+    printf("*** IMPOSSIBLE ***\n");
+    return 0;
   }
   
   double k1 = (-b - sqrt(d)) / ( 2 * a );
   double k2 = (-b + sqrt(d)) / ( 2 * a );
 
-  //printf("k1:%f k2:%f\n", k1, k2);
+  printf("k1:%f k2:%f\n", k1, k2);
   
   // Si les points d'intersection sont en dehors du segment, c fini
   if ( (k1 < 0 || k1 > 1) && (k2 < 0 || k2 > 1) ) {
@@ -595,6 +638,51 @@ int Arc2D::TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D 
   }
   
   return NbPoints;
+}
+
+int Arc2D::TestIntersectionArc ( Arc2D *arc2, Point2D *ptInter1, Point2D *ptInter2 ) {
+	
+	// si l'écart des centres des arc est supérieur à la somme des rayons, alors aucun risque de collision
+	Segment2D *seg = new Segment2D(this->pt, arc2->pt);
+	if ( seg->getLongueur() > this->rayon + arc2->rayon ) {
+		return 0;
+	}
+	
+	// si les cercles sont l'un dans l'autre, si une des deux conditions sont valides alors on a un cercle dans l'autre
+	if ( this->rayon > arc2->rayon + seg->getLongueur() || arc2->rayon > this->rayon + seg->getLongueur() ) {
+		return 0;
+	}
+	
+	calculerIntersectionCercles(this->pt->x, this->pt->y, this->rayon, arc2->pt->x, arc2->pt->y, arc2->rayon, 
+							&(ptInter1->x), &(ptInter1->y), &(ptInter2->x), &(ptInter2->y));
+	
+	printf("Intersections [%f %f] [%f %f]\n", ptInter1->x, ptInter1->y, ptInter2->x, ptInter2->y);
+	
+	// Calcul des angles du premier point d'intersection par rapport aux cercles 1 et 2
+	Vecteur2D *vec11 = new Vecteur2D(this->pt, ptInter1);
+	double angle11 = vec11->angle();
+	Vecteur2D *vec21 = new Vecteur2D(arc2->pt, ptInter1);
+	double angle21 = vec21->angle();
+	
+	// Si le point d'intersection ptInter1 appartient aux deux arcs de cercle alors, il a intersection
+	if ( DistanceAngulaire(this->angleA, angle11) < DistanceAngulaire(this->angleA, this->angleB) &&
+	     DistanceAngulaire(arc2->angleA, angle21) < DistanceAngulaire(arc2->angleA, arc2->angleB) ) {
+		return 1;
+	}
+	
+	// Calcul des angles du deuxième point d'intersection par rapport aux cercles 1 et 2
+	Vecteur2D *vec12 = new Vecteur2D(this->pt, ptInter2);
+	double angle12 = vec12->angle();
+	Vecteur2D *vec22 = new Vecteur2D(arc2->pt, ptInter2);
+	double angle22 = vec22->angle();
+	
+	// Si le point d'intersection ptInter1 appartient aux deux arcs de cercle alors, il a intersection
+	if ( DistanceAngulaire(this->angleA, angle12) < DistanceAngulaire(this->angleA, this->angleB) &&
+	     DistanceAngulaire(arc2->angleA, angle22) < DistanceAngulaire(arc2->angleA, arc2->angleB) ) {
+		return 1;
+	}
+	
+	return 0;
 }
 
 // Calcul des 4 segments tangents entre deux cercles
@@ -834,6 +922,7 @@ WayPoint::WayPoint(double x_m, double y_m, double cap_en_deg, double vitesse)
   cap_deg = cap_en_deg;
   vitesse_m_par_s = vitesse;
   controlByte = 0;
+  id = 0;
 }
 WayPoint::WayPoint(TiXmlElement* pWP)
 {
@@ -864,6 +953,7 @@ WayPoint::WayPoint(TiXmlElement* pWP)
   cout << "rot "<<rot <<endl;
   cout << "sensRot "<<sensRot <<endl;
   
+  id = 0;
   controlByte = 0;
   if (sensMAv==1)
     setBit(BIT_SENS_WP,controlByte);
@@ -872,7 +962,6 @@ WayPoint::WayPoint(TiXmlElement* pWP)
   if (sensRot==1)
     setBit(BIT_SENS_ROT,controlByte);
 }
-
 
 WayPoint::~WayPoint(void)
 {
@@ -886,6 +975,20 @@ WayPoint* WayPoint::operator =(WayPoint* wp)
   this->vitesse_m_par_s = wp->vitesse_m_par_s;
   return this;
 }
+
+// Détermine de quel côté du WP se trouve le point pt
+int WayPoint::cotePoint ( Point2D *pt ) {
+	Vecteur2D *vec1 = new Vecteur2D(cos(convertirAngle(deg2rad(this->cap_deg))), sin(convertirAngle(deg2rad(this->cap_deg))));
+	Vecteur2D *vec2 = new Vecteur2D(this->pt, pt);
+	
+	if ( vec1->ProduitVectoriel(vec2) > 0 ) {
+		return COTE_GAUCHE;
+	} else {
+		return COTE_DROIT;
+	}
+	
+}
+
 /*************************************************************************/
 /*                                Leg                               */
 /*************************************************************************/
@@ -896,8 +999,8 @@ Branche::Branche(Segment2D *seg)
 {
   Vecteur2D *vec = new Vecteur2D(seg);
   double route = vec->angle();
-  wp1 = new WayPoint(seg->pt1->x, seg->pt1->y, route*180/M_PI, 0);
-  wp2 = new WayPoint(seg->pt2->x, seg->pt2->y, route*180/M_PI, 0);
+  wp1 = new WayPoint(seg->pt1->x, seg->pt1->y, rad2deg(convertirAngle(route)), 0);
+  wp2 = new WayPoint(seg->pt2->x, seg->pt2->y, rad2deg(convertirAngle(route)), 0);
   longueur = vec->norme();
   type = BRANCHE_DROITE;
 }
