@@ -26,7 +26,7 @@ manager_t:: manager_t()
      res(COMPO_NUMBER)
 {
   // comportement that do nothing at the highest priority
-  comportement_t * dummy1 = new dummy_comportement_t(COMPO_DUMMY1);
+  comportement_t * dummy1 = new comportement_dummy_t(COMPO_DUMMY1);
   compo.append(dummy1); 
   setPriority(COMPO_DUMMY1, REFEREE_DEPLACEMENT,0);
   setPriority(COMPO_DUMMY1, REFEREE_TOOLS,0);

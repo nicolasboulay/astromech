@@ -14,7 +14,7 @@ bool  barillet_t ::initPosition(const trame_in_t & in, trame_out_t & out)
 
 unsigned int degres_to_consigne(double degree)
 {
-  // 42 000
+  // 42 000 impulsion par tour
   
   return static_cast<unsigned int> ((degree*360.0)/42000.0);
 }

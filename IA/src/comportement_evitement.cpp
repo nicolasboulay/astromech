@@ -18,24 +18,28 @@
 #include "barillet.h"
 
 
-#include "comportement_strategie.h"
+#include "comportement_evitement.h"
 
 
- comportement_strategie_t::comportement_strategie_t(int _name) : comportement_t(_name) 
+ comportement_evitement_t::comportement_evitement_t(int _name) : comportement_t(_name) 
 {
     QTextStream qout(stdout);
-    output.name("strategie comportement");
-    qout << "init comportement_strategie:" << _name << endl;
+    output.name("evitement comportement");
+    qout << "init comportement_evitement:" << _name << endl;
 }
 
- comportement_result_t 
-comportement_strategie_t::execute(const trame_in_t & tin,  
+#define SEUIL_US 100
+
+comportement_result_t 
+comportement_evitement_t::execute(trame_in_t & tin,  
 			     internal_state_t & state) 
 {
+
   for(int n=0;n<REFEREE_NUMBER;n++){
-    output.isActive[n]=true;
+    output.isActive[n]=false;
   }
 
+  if(tin.me)
 
   return output;
 };
