@@ -32,6 +32,19 @@ void give_barycentre(CImg<unsigned char>&  labels, int nb_object,
 complex<double>  largest_difference(complex<double> a, 
 				    complex<double> b, 
 				    complex<double> c);
+ complex<double> largest_difference(QVector<int> index,
+				    QVector<complex<double> >  barys);
+
+
+ void colinear_vector_to_beacon(const QList<QVector<int> > & colin,
+				const QVector<complex<double> > & barys,
+				QVector<complex<double> >& beacons);
+
+ void min_max_norm_of_colinear_vector(const QVector<int> & index,
+				      const QVector<complex<double> >  & barys,
+				      double & _min, double & _max,
+				      complex<double> & c_min,complex<double> & c_max);
+
   QMutex mutex;
   //video_t camera;
 };

@@ -8,6 +8,16 @@
 #include "comportement_test.h"
 #include "comportement_endofmatch.h"
 #include "comportement_navigation.h"
+#include "comportement_strategie.h"
+
+//
+// Pour ajouter un comportement
+// - créer un comportement_xxx.h et comportement_xxx.cpp
+// - déclarer comportement_xxx.h dans manager.cpp (ici)
+// - enregister comportement_xxx_t dans le constructeur de manager_t
+//   - !!! les valeurs de priorité sont primordials !
+// - rajouter les bon numéros dans common.h
+// - rajouter les 2 fichiers dans ia.pro... (ça link mieux ensuite...)
 
 using namespace std;
 manager_t:: manager_t() 
@@ -40,13 +50,22 @@ manager_t:: manager_t()
   setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,5);
   setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,5);
 
+  comportement_t * strategie = new comportement_strategie_t(COMPO_STRATEGIE);
+  compo.append(strategie); 
+  setPriority(COMPO_ENDOFMATCH, REFEREE_DEPLACEMENT,20);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_TOOLS,20);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_DISPLAY,20);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,20);
+  setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,20);
+
+
   comportement_t * test = new comportement_test_t(COMPO_TEST);
   compo.append(test); 
-  setPriority(COMPO_TEST, REFEREE_DEPLACEMENT,10);
-  setPriority(COMPO_TEST, REFEREE_TOOLS,10);
-  setPriority(COMPO_TEST, REFEREE_DISPLAY,10);
-  setPriority(COMPO_TEST, REFEREE_NAVIGATION,10);
-  setPriority(COMPO_TEST, REFEREE_GESTION,10);
+  setPriority(COMPO_TEST, REFEREE_DEPLACEMENT,90);
+  setPriority(COMPO_TEST, REFEREE_TOOLS,90);
+  setPriority(COMPO_TEST, REFEREE_DISPLAY,90);
+  setPriority(COMPO_TEST, REFEREE_NAVIGATION,90);
+  setPriority(COMPO_TEST, REFEREE_GESTION,90);
 
 
   //Lowest priority comportement for "sane" behaviour 

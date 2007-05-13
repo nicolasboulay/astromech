@@ -20,7 +20,8 @@ extern bool use_gui;
 #define COMPO_TEST    2
 #define COMPO_ENDOFMATCH    3
 #define COMPO_NAVIGATION    4
-#define COMPO_NUMBER  5
+#define COMPO_STRATEGIE     5
+#define COMPO_NUMBER  6
 
 // Referee
 #define REFEREE_DEPLACEMENT 0
