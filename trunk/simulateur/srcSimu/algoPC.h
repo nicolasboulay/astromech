@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-#define POS_X_BALISE_1 1
+#define POS_X_BALISE_1 1.05
 #define POS_Y_BALISE_1 0
-#define POS_X_BALISE_2 2
+#define POS_X_BALISE_2 2.1
 #define POS_Y_BALISE_2 3
 #define POS_X_BALISE_3 0
 #define POS_Y_BALISE_3 3

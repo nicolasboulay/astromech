@@ -125,7 +125,7 @@ class Arc2D
   double longueur;
   
   Arc2D(Point2D *ptA, double rayon, double AngleA, double AngleB);
-  Arc2D(WayPoint *WP, double sens, double rayon);
+  Arc2D( WayPoint * wayPoint, double sens, double rayon);
   Arc2D(Point2D *ptO, Point2D *ptA, Point2D *ptB, double rayon);
   ~Arc2D(void);
   int TestIntersectionSegment ( Segment2D *seg, Point2D *ptInter1, Point2D *ptInter2 );

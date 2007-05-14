@@ -99,12 +99,23 @@ void AlgoPC::execute(int tempsCourant_ms)
     wayPointArrivee.cap_deg = 20.0;
     wayPointArrivee.vitesse_m_par_s = 0.3;
     
-    algoPlanifTraj->calculeTrajectoire(//IN
+    /*algoPlanifTraj->calculeTrajectoire(//IN
                                        tableDesObstacles,
                                        &wayPointDepart,
 			               &wayPointArrivee,
 			               //OUT
 			               listeWP);
+    */
+    double angleGisement1 = 0.0;
+    double angleGisement2 = 240.0;
+    double angleGisement3 = 120.0;
+    double capRobot = 0.0;
+    double posX = 0.0;
+    double posY = 0.0;
+    
+    calculerPosition( angleGisement1, angleGisement2, angleGisement3, capRobot, posX, posY );
+    cout << "*******calculerPosition ***************************************************************************"<<endl;
+    cout << "cap: "<<capRobot<<" X: "<<posX<<" Y: "<<posY<<endl;
     
     
     //temporaire: une seule traj est envoyee composee des waypoints contenus dans le .xml    

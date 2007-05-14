@@ -72,11 +72,11 @@ AlgoPlanifTrajectoire::~AlgoPlanifTrajectoire(void)
 	//printf("**** Segments2D : %d/%d\n", Segment2D::nbPresents, Segment2D::nbCrees);
 	//printf("**** Points2D   : %d/%d\n", Point2D::nbPtPresents, Point2D::nbPtCrees);
 	Segment2D *seg = this->segBorduresTerrain[i];
-	Point2D *pt1 = seg->pt1;
-	Point2D *pt2 = seg->pt2;
+	//Point2D *pt1 = seg->pt1;
+	//Point2D *pt2 = seg->pt2;
 	delete(seg);
-	delete(pt1);
-	delete(pt2);
+	//delete(pt1);
+	//delete(pt2);
 	//printf("**** Segments2D : %d/%d\n", Segment2D::nbPresents, Segment2D::nbCrees);
 	//printf("**** Points2D   : %d/%d\n", Point2D::nbPtPresents, Point2D::nbPtCrees);
   }
