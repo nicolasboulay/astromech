@@ -19,6 +19,7 @@ class TramePC_PIC;
 class TramePIC_PC;
 
 double distCurviligneAversB(double X_A,double Y_A, double X_B, double Y_B,double rayon);
+int distCurviligneAversBEntier(int X_A,int Y_A, int X_B, int Y_B, int rayon);
 
 class AlgoPIC : public Algo
 {
@@ -37,7 +38,7 @@ class AlgoPIC : public Algo
     unsigned short u16_CAP_ROBOT_100eme_deg;
     signed int     s32_X_CAP_ROBOT_um;
     signed int     s32_Y_CAP_ROBOT_um;
-    unsigned short u16_VIT_ROBOT_mm_par_s;
+    signed short   s16_VIT_ROBOT_mm_par_s;
     
     unsigned char  numeroWPenCours;
     signed int     s32_POS_X_WP_um;
@@ -50,13 +51,18 @@ class AlgoPIC : public Algo
     
     float          u64_CARRE_DIST_ROBOT_WP;
     
+    signed short   s16_QW;
+    signed short   s16_QZ;
+    signed int     s24_VITESSE_TGT_um_par_s;
+    
+    unsigned short u16_VITCONSIGNEROT_mm_par_s;
+    unsigned short vitesseConsigneCG_mm_par_s;
+    
+    
     double qw;
     double qx;
     double qy;
     double qz;
-    double posX;
-    double posY;
-    double cap;
     double vitesse;
     
     double vitesseConsigneCG_m_par_s;
@@ -93,14 +99,26 @@ class AlgoPIC : public Algo
                              const double & codeuseMoteurGauche,
 			     const int    & sensRotationMoteurDroit,
 		             const int    & sensRotationMoteurGauche);
+	
+    void miseAjourNavigationNbEntierQuats(const int & impCodeuseMoteurDroit,
+                             const int    & impCodeuseMoteurGauche,
+			     const int    & sensRotationMoteurDroit,
+		             const int    & sensRotationMoteurGauche);
 			     
     void boucleGuidageRotation(double & consigneVitesseMoteurDroit_rad_s, 
 		               double & consigneVitesseMoteurGauche_rad_s);
+
+    void boucleGuidageRotationNbEntiers(double & consigneVitesseMoteurDroit_rad_s, 
+		                        double & consigneVitesseMoteurGauche_rad_s);
+					
     void boucleGuidage(double & consigneVitesseMoteurDroit_rad_s, 
 		       double & consigneVitesseMoteurGauche_rad_s);
 		       
     void boucleGuidageSansTrigo(double & consigneVitesseMoteurDroit_rad_s, 
 		                double & consigneVitesseMoteurGauche_rad_s);
+				
+    void boucleGuidageSansTrigoNbEntiers(double & consigneVitesseMoteurDroit_rad_s, 
+		                         double & consigneVitesseMoteurGauche_rad_s);
 		       
     void miseAjourWaypoint(void);
 					       
