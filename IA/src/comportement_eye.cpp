@@ -26,10 +26,24 @@ void comportement_eye_t::run(){
     internal_state_t state_intra = state_ext;
     mutex.unlock();
     
-    eye.grab_frame();
-    eye.panier_processing();
+    // à faire sur appuis du bon bouton !
+    // if(tin_intra.b...)
+    //eye.take_before_match_picture();
+
+    // if(state_intra.match_ongoing){
+      // debut de match avant la 1er secondes
+      //if(state_intra.elasped_time_s < 1.0){
+	eye.grab_frame();
+	QVector<float> proba_panier(3,0);
+	eye.panier_processing(proba_panier);
+	state_intra.panier.proba_presence[0]=proba_panier[0];
+	state_intra.panier.proba_presence[1]=proba_panier[1];
+	state_intra.panier.proba_presence[2]=proba_panier[2];
+	//}
+	//}
 
     mutex.lock();
+    state_ext = state_intra;
     result_ext=result_intra;
     mutex.unlock();
   }

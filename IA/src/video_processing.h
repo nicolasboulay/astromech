@@ -1,5 +1,9 @@
 #ifndef VIDEO_PROCESSING_H
 #define VIDEO_PROCESSING_H
+#include "CImg.h"
+#include <iostream>
+#include <QVector>
+#include <complex>
 
 class video_processing_t 
 {
@@ -13,6 +17,11 @@ class video_processing_t
   inline void labellise_a_pixel(CImg<unsigned char>&  labelling,
 				CImg<unsigned char>&  img,
 				int x, int y, unsigned char label,int channel);
+  inline void  
+  give_barycentre(const CImg<unsigned char>&  labels, 
+		  int nb_object,
+		  QVector<complex<double> > & barys, 
+		  QVector<int> & weight );
 };
 
 
@@ -95,5 +104,30 @@ inline void video_processing_t::labellise_a_pixel(CImg<unsigned char>&  labellin
       }
     }
 }
+
+inline void  
+video_processing_t::give_barycentre(const CImg<unsigned char>&  labels, 
+				    int nb_object,
+				    QVector<complex<double> > & barys, 
+				    QVector<int> & weight )
+{
+  weight.resize(nb_object+2);
+  barys.resize(nb_object+2);
+  complex<double> J(0.0,1.0);
+
+
+  cimg_for_insideXY(labels,x,y,1){
+    //cout << nb_object <<" " << (int)labels(x,y) << " " <<(double)x+(double)y*J << endl;
+    int index =labels(x,y);
+      barys[index] +=(double)x+(double)y*J;
+      weight[index]+=1;
+  }  
+
+  for(int i=0;i<barys.size();i++){
+    barys[i]/=weight[i];
+    //    cout << barys[i] << " ";
+  }
+  //cout << endl;
+} 
 
 #endif

@@ -13,7 +13,7 @@ panier_t::panier_t()  {
 }
 
 
-// en cas de modification de probabilité le somme des proba restent
+// en cas de modification de probabilité la somme des probas restent
 // 1.0
 void panier_t::change_proba_presence(int index, float value)
 {

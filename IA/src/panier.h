@@ -7,6 +7,10 @@ using namespace std;
 // C'est la class qui contient toutes les infos que l'on a sur les paniers
 //
 
+// panier0 : centre du jeu
+// panier1 
+// panier2 : le plus externe
+
 class panier_t {
  public:
   complex<double> position[3];
