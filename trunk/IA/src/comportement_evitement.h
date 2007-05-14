@@ -10,6 +10,10 @@
 // class d'évitement le but est d'éviter l'adversaire
 // en utilisant les ultra-son.
 
+//
+//  Garder le même WP mais partir en marche arrière pendant 5s.
+//
+
 class comportement_evitement_t : public comportement_t 
 {
   barillet_t barillet;

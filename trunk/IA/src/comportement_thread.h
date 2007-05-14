@@ -16,8 +16,10 @@ class comportement_thread_t : public comportement_t, public QThread
 
  public:
   comportement_thread_t(int _name) : comportement_t(_name) { }
-  virtual comportement_result_t & execute(trame_in_t tin, 
-					  internal_state_t & state) {return output;};
+  virtual comportement_result_t & execute(const trame_in_t & tin, 
+					  internal_state_t & state,
+					  
+					  ) {return output;};
 };
 
 #endif

@@ -7,6 +7,7 @@ using namespace std;
 class video_pwc_t : public video_t
 {
 public:
+  video_pwc_t() : video_t(), fps(5) {}
   video_pwc_t(const std::string &  s, int h, int w):video_t(s,h,w), fps(5) {};
   unsigned fps;
   int agc;

@@ -8,43 +8,66 @@
 #include <cassert>
 using namespace cimg_library;
 
-traitement_cone_t::traitement_cone_t() //: camera("/dev/video",480/4,640/4)
+traitement_cone_t::traitement_cone_t() : restart(true)
 {
   // /!\ ce n'est pas le thread de traitement ici.
 }
 
 //for debugging:
-  CImgDisplay * label_disp;
+CImgDisplay * label_disp=NULL;
+CImgDisplay * main_disp=NULL;
+CImgDisplay * raw_disp=NULL;
 
 void traitement_cone_t::run(){
   
- video_pwc_t camera("/dev/video",480,640);
+  forever{
+    // permet de garder les fenètres ouvertes.
+    if(use_gui){
+      main_disp  = new CImgDisplay (640,480,"Webcam cone !",1);
+      
+      raw_disp   = new CImgDisplay(640,480,"raw !",1);
+      label_disp = new CImgDisplay (640,480,"label !",1);
+    }
+
+    video_processing();
+
+    mutex.lock();
+    if (!restart)
+      condition.wait(&mutex);
+    mutex.unlock();
+    
+  }
+
+  //parfaitement inutile oui, je sais.
+  if(use_gui){
+    delete main_disp;
+    delete raw_disp; 
+    delete label_disp;
+  }
+  
+
+}
+
+void traitement_cone_t::video_processing()
+{
+ video_pwc_t camera(video_device_360,480,640);
 
  //for debuging purpose:
- CImgDisplay * main_disp=NULL;
- CImgDisplay * raw_disp=NULL;
  
- if(use_gui){
-   main_disp  = new CImgDisplay (640,480,"Webcam cone !",1);
-
-   raw_disp   = new CImgDisplay(640,480,"raw !",1);
-   label_disp = new CImgDisplay (640,480,"label !",1);
- }
   const unsigned char white[3] = {255,255,255};
   
   camera.fps=5;;
   camera.commit();
   camera.set_agc(0);
-  camera.set_shutter(10000); // de 0 à ~16000 rien de spécial ensuite, cela la luminosité augmenter jusqu'à 32000
+  // de 0 à ~16000 rien de spécial ensuite (c'est sombre), cela la luminosité augmenter jusqu'à 65000
+  camera.set_shutter(10000); 
   camera.awb(PWC_WB_INDOOR);
   camera.compression(3);
 
   CImg<unsigned char> * image= camera.factory_img();
 
-  // Enter event loop. This loop ends when one of the two display window is closed.
   forever {
-
-    
+   
     // Handle display window resizing (if any)
     float fps=0;
     if(use_gui){
@@ -62,23 +85,35 @@ void traitement_cone_t::run(){
     QVector<complex<double> > beacons(255,0.0); // beacons 3,4,5,6 leds
     seuillage(*image,220);
     find_the_4_beacons(*image,beacons);
+
     if(use_gui){
       image->draw_text(15,5,white,0,11,1,"%f fps !",fps).display(*main_disp);
     }
-      camera.getparam();
-      camera.print_parameter();
+
+    //camera.getparam();
+    //camera.print_parameter();
    
     // Temporize event loop
-    cimg::wait(1);
+    cimg::wait(1);    
+    
+    if (!restart){
+      return;
+    }
   }
+}
 
- if(use_gui){
-   delete main_disp;
+void traitement_cone_t::play()
+{
+  mutex.lock(); 
+  restart=true;
+  mutex.unlock();
+}
 
-   delete raw_disp; 
-   delete label_disp;
- }
-
+void traitement_cone_t::stop()
+{
+  mutex.lock(); 
+  restart=false;
+  mutex.unlock();
 }
 
 //!!!! seuil sur le rouge !!!

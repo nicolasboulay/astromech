@@ -20,8 +20,10 @@ class comportement_result_t : public trame_out_t
   QString _name;   //comportement name used for debugging purpose
 };
 
-class comportement_t 
+class comportement_t : public QObject
 {
+  Q_OBJECT
+  
     public :
     virtual ~comportement_t() {}
     comportement_t(int _name=-1) : name(_name), output() { }

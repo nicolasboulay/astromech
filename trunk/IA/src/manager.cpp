@@ -4,11 +4,12 @@
 #include"manager.h"
 #include "comportement.h"
 #include "comportement_defaut.h"
-#include "dummy_comportement.h"
+#include "comportement_dummy.h"
 #include "comportement_test.h"
 #include "comportement_endofmatch.h"
 #include "comportement_navigation.h"
 #include "comportement_strategie.h"
+#include "comportement_eye.h"
 
 //
 // Pour ajouter un comportement
@@ -50,6 +51,9 @@ manager_t:: manager_t()
   setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,5);
   setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,5);
 
+  //evitement
+  //automate ?
+
   comportement_t * strategie = new comportement_strategie_t(COMPO_STRATEGIE);
   compo.append(strategie); 
   setPriority(COMPO_ENDOFMATCH, REFEREE_DEPLACEMENT,20);
@@ -58,6 +62,13 @@ manager_t:: manager_t()
   setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,20);
   setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,20);
 
+  comportement_t * eye = new comportement_eye_t(COMPO_EYE);
+  compo.append(eye); 
+  setPriority(COMPO_EYE, REFEREE_DEPLACEMENT,80);
+  setPriority(COMPO_EYE, REFEREE_TOOLS,80);
+  setPriority(COMPO_EYE, REFEREE_DISPLAY,80);
+  setPriority(COMPO_EYE, REFEREE_NAVIGATION,80);
+  setPriority(COMPO_EYE, REFEREE_GESTION,80);
 
   comportement_t * test = new comportement_test_t(COMPO_TEST);
   compo.append(test); 
