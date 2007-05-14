@@ -32,9 +32,15 @@
 
 #include "task_rt.h"
 
+#include "video.h"
+
 using namespace std;
 
+// paramètre du logiciel
 bool use_gui;
+bool use_video_gui;
+const char * video_device_360;
+const char * video_device_eye;
 
 int main(int argc, char *argv[])
 {
@@ -45,15 +51,31 @@ int main(int argc, char *argv[])
 
 
   // Read device filename from the command line (or set to /dev/ttyS0)"
-
+  /// /!\ à prioris impossible de prédire quel webcame est ou ?!
   const char * dev
     = cimg_option("-dev","/dev/ttyS0","RS232 device");
+  video_device_360
+    = cimg_option("-videodev360","/dev/video1",
+		  "video device of the 360° webcam");
+  video_device_eye
+    = cimg_option("-videodeveye","/dev/video0",
+		  "video device of the eye webcam");
   use_gui
     = !(cimg_option("-nogui",false,"Starting without gui"));
+  use_video_gui
+    = !(cimg_option("-novideogui",false,
+		    "Starting without the display of the wecam and video processing"));
 
+  ///////////////////////////////////////////////////////////////
+  // Il est impossible de fixer à l'avance quel camera sera ou.
+  // j'utilise le nom de la camera pour savoir les distinguer
+  // ... il faut donc 2 cameras différentes...
+  video_t video;
+  //dev1 =
+  video.which_one_is_the_good_one("Philips 740 webcam",video_device_360,video_device_eye);
+  ///////////////////////////////////////////////////////////////
 
   task_rt_t mt(dev);
-
 
   if(use_gui){
     gui_t gui(&mt);
@@ -74,15 +96,11 @@ int main(int argc, char *argv[])
 		     &gui, SLOT(update_tree_state(const internal_state_t &)));//,Qt::DirectConnection);
 
     mt.start(QThread::TimeCriticalPriority);
-    //gui.show();
     return app.exec();
   } else {
     mt.start();
     return app.exec();
   }
-
-  //mt.dumpObjectInfo ();
-  //gui.dumpObjectInfo ();
 
   return app.exec();
 }

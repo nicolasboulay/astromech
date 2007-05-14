@@ -13,28 +13,39 @@
 
 using namespace cimg_library;
 
+
 video_t::video_t(const std::string &  s, int h=120, int w=160)
 
+{
+  open_device(s,h,w);
+}
+
+void video_t::open_device(const std::string &  s, int h=120, int w=160)
 {
   file_name=s;
   framebuf=NULL;
   printf("Try to open webcam ...\n");
-  while(!_open(s));
+  while(!_open(fd,s)) {sleep(1);}
   getparam();  
   height = h;
   width  = w;
   //close(fd);
-   setmmap();
+  setmmap();
   setgrabframe();
   print_parameter();
 }
- 
+
 video_t::~video_t()
+{
+  close_device();
+  printf("Close %s\n",file_name.c_str());
+}
+
+void video_t::close_device()
 {
   munmap(framebuf, width * height * 3);
   close(fd);
   if(!framebuf) free(framebuf);
-  printf("Close %s\n",file_name.c_str());
 }
 
 cimg_library::CImg<unsigned char> * video_t::factory_img()
@@ -49,20 +60,20 @@ void video_t::reset_cycle()
   //  wait_frame();
   munmap(framebuf, width * height * 3);
   if(close(fd)) perror("reset_cyle:");
-  //_open(file_name);
+  //_open(fd,file_name);
   // print_parameter();
 }
 
 void video_t::reopen()
 {
-  _open(file_name);
+  _open(fd,file_name);
   setmmap();
   setgrabframe();
   print_parameter();
 }
 
 
-bool video_t::_open(const string & s) 
+bool video_t::_open(int & _fd, const string & s) 
 {
   struct stat st; 
 
@@ -79,28 +90,68 @@ bool video_t::_open(const string & s)
     return false;
   }
 
-  fd = open (s.c_str(), O_RDWR /* required */ | O_NONBLOCK, 0);
+  _fd = open (s.c_str(), O_RDWR /* required */ | O_NONBLOCK, 0);
 
   cout << "open device :" << s << endl;
 
-  if (-1 == fd) {
+  if (-1 == _fd) {
     fprintf (stderr, "Cannot open '%s': %d, %s\n",
 	     s.c_str(), errno, strerror (errno));
     //exit (EXIT_FAILURE);
     return false;
   }
+  struct video_capability vcap;
 
-  /* Get device capabilities */
-  if (ioctl (fd, VIDIOCGCAP, &vcap) < 0) {
-    perror ("VIDIOCGCAP");
-    //exit (EXIT_FAILURE);
+  if(!get_video_capability(_fd,vcap))
     return false;
-  }
 
   printf ("Video Capture Device Name : %s\n", vcap.name);
   printf ("  %ix%i to %ix%i type=%i\n", 
 	  vcap.minwidth,vcap.minheight,vcap.maxwidth,vcap.maxheight,vcap.type);
   return true;
+}
+
+bool video_t::get_video_capability(int file, struct video_capability & vcap)
+{
+  /* Get device capabilities */
+  if (ioctl (file, VIDIOCGCAP, &vcap) < 0) {
+    perror ("VIDIOCGCAP");
+    return false;
+  }
+  return true;
+}
+
+const char * video_t::which_one_is_the_good_one(const char * name, const char * dev1,const char * dev2)
+{
+  const char * ret=NULL;
+  int fd1;
+  if(!_open(fd1,dev1)) {
+    fprintf(stderr,"%s:",dev1);
+    perror("open");
+  }
+  int fd2;
+  if(!_open(fd2,dev2)) {
+    fprintf(stderr,"%s:",dev2);
+    perror("open");
+  }
+
+  struct video_capability vcap1;
+  get_video_capability(fd1,vcap1);
+  if(!strcmp(name,vcap1.name)){
+    ret= dev1;
+  }
+
+  struct video_capability vcap2;
+  get_video_capability(fd2,vcap2);
+  if(!strcmp(name,vcap2.name)){
+    ret= dev2;
+  }
+
+  printf("%s is in %s.\n", name,ret);
+
+  close(fd1);
+  close(fd2);
+  return ret;
 }
  
 

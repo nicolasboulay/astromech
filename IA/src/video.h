@@ -9,8 +9,11 @@ using namespace std;
 
 class video_t{
 public:
+  video_t() {} // only for detecting the good device !!
   video_t(const std::string &  s, int h, int w);
   virtual ~video_t();
+  void close_device();
+  void open_device(const std::string &  s, int h, int w);
   int set (int width_, int height_, int framerate_,
        int brightness_,  int colour_, int contrast_,
        int whiteness_, int palette_, int agc_);
@@ -34,7 +37,7 @@ public:
   int whiteness;
   int palette;
   int agc;
-
+ const char * which_one_is_the_good_one(const char * name, const char * dev1,const char * dev2);
 protected:
   virtual void video_windows_set();
   int fd;
@@ -44,13 +47,14 @@ private:
 
   // V4L 1.0
   unsigned char *framebuf;
-  struct video_capability vcap;
   struct video_channel    vc;
   struct video_mmap       mm;
   cimg_library::CImg<unsigned char> * img[2];
-  bool _open(const string & s);
+  bool _open(int & _fd,const string & s);
   inline int clip8(int i);
-  inline unsigned char * YUV444toRGB888(unsigned int Y,
+  bool get_video_capability(int file, struct video_capability & vcap);
+ 
+ inline unsigned char * YUV444toRGB888(unsigned int Y,
 					      unsigned int U, 
 					      unsigned int V,
 					      unsigned char ret[3]);

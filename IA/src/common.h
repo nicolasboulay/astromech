@@ -2,6 +2,9 @@
 #define COMMON_H
 
 extern bool use_gui;
+extern bool use_video_gui;
+extern const char * video_device_360;
+extern const char * video_device_eye;
 
 //pic frame
 #define TAILLE_TRAME 128
@@ -18,10 +21,11 @@ extern bool use_gui;
 #define COMPO_DUMMY1  0
 #define COMPO_DEFAUT  1
 #define COMPO_TEST    2
-#define COMPO_ENDOFMATCH    3
-#define COMPO_NAVIGATION    4
-#define COMPO_STRATEGIE     5
-#define COMPO_NUMBER  6
+#define COMPO_ENDOFMATCH 3
+#define COMPO_NAVIGATION 4
+#define COMPO_STRATEGIE  5
+#define COMPO_EYE        6
+#define COMPO_NUMBER     7
 
 // Referee
 #define REFEREE_DEPLACEMENT 0
