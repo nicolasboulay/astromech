@@ -33,8 +33,9 @@ int main(int argc,char **argv) {
 
     float fps = main_disp.frames_per_second();
     //
-    camera.grab_frame(*image)
-      .draw_text(15,5,white,0,11,1,"%f fps !",fps)
+    camera.grab_frame(*image);
+
+      image->draw_text(15,5,white,0,11,1,"%f fps !",fps)
       .display(main_disp);
 //	camera.width+=10; 
 //	camera.height+=10; 
