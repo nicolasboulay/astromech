@@ -187,9 +187,12 @@ void eye_processing_t::target_processing()
 
   pro.seuillage(res,30,1);
   // jaune des cannettes [65:68]
-  keep_one_color(res,340.0/360.0,10.0/360.0);
+  //keep_one_color(res,340.0/360.0,10.0/360.0);
   //res.erode(2).dilate(2);
-  int nb_object; 
+
+  derivateY(res);
+  int nb_object;
+ 
   pro.labellise(res,labels,nb_object,1);
 
   QVector<complex<double> > barys(nb_object+2,0.0);
@@ -307,5 +310,30 @@ inline void eye_processing_t::keep_one_color(CImg<unsigned char> & in,
     }
   }
     
+  
+}
+
+
+inline void eye_processing_t::derivateY(CImg<unsigned char> & in)
+
+{
+  CImg<unsigned char> img(in);
+
+  for(int x = 0;x < img.dimx();x++)
+    for(int y = img.dimy()-2 ;y !=0;y--){
+  
+//     in(x,y,0) = abs_diff(img(x,y,0),img(x,y+1,0)); 
+//     in(x,y,1) = abs_diff(img(x,y,1),img(x,y+1,1)); 
+//     in(x,y,2) = abs_diff(img(x,y,2),img(x,y+1,2)); 
+
+      int tmp = abs_diff(img(x,y,0),img(x,y+1,0))
+	+ abs_diff(img(x,y,1),img(x,y+1,1))
+	+ abs_diff(img(x,y,2),img(x,y+1,2)); 
+      if(tmp > 100){
+	in(x,y,0)=255;
+	break; // fini pour cette colonne
+      }
+    
+  }
   
 }
