@@ -43,6 +43,7 @@ class eye_processing_t
   inline void keep_one_color(CImg<unsigned char> & in,
 			     float color,
 			     float seuil);
+  inline void derivateY(CImg<unsigned char> & in);
 };
 
 #endif
