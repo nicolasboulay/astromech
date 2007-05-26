@@ -62,13 +62,13 @@ manager_t:: manager_t()
   setPriority(COMPO_ENDOFMATCH, REFEREE_NAVIGATION,20);
   setPriority(COMPO_ENDOFMATCH, REFEREE_GESTION,20);
 
-  comportement_t * eye = new comportement_eye_t(COMPO_EYE);
-  compo.append(eye); 
-  setPriority(COMPO_EYE, REFEREE_DEPLACEMENT,80);
-  setPriority(COMPO_EYE, REFEREE_TOOLS,80);
-  setPriority(COMPO_EYE, REFEREE_DISPLAY,80);
-  setPriority(COMPO_EYE, REFEREE_NAVIGATION,80);
-  setPriority(COMPO_EYE, REFEREE_GESTION,80);
+//   comportement_t * eye = new comportement_eye_t(COMPO_EYE);
+//   compo.append(eye); 
+//   setPriority(COMPO_EYE, REFEREE_DEPLACEMENT,80);
+//   setPriority(COMPO_EYE, REFEREE_TOOLS,80);
+//   setPriority(COMPO_EYE, REFEREE_DISPLAY,80);
+//   setPriority(COMPO_EYE, REFEREE_NAVIGATION,80);
+//  setPriority(COMPO_EYE, REFEREE_GESTION,80);
 
   comportement_t * test = new comportement_test_t(COMPO_TEST);
   compo.append(test); 
@@ -98,16 +98,18 @@ void manager_t::setPriority(int compo_n, int referee, int rank)
   priority_rank[referee][rank]=compo_n;
 }
 
-trame_out_t & manager_t::execute(trame_in_t in,  internal_state_t & state)
-{ QTextStream qout(stdout);
-  //  TRACE;    printf(":%i\n",compo.size());
+trame_out_t & manager_t::execute(const trame_in_t & in,  internal_state_t & state)
+{ 
+  QTextStream qout(stdout);
+
   for (int i = 0; i < compo.size(); ++i) {
     res[i]=compo[i]->execute(in,state);
     qout << "execute " <<res[i].name()<< endl;
   }
-  //  TRACE;
-  referee();
-  //TRACE;
+
+  QVector<int>  choosed_compo;
+  referee(choosed_compo);
+
   return out;
 }
 
@@ -125,9 +127,9 @@ QString manager_t::refereetostring(int r)
 }
 
 
-void manager_t::referee()
+void manager_t::referee(  QVector<int> & choosed_compo)
 {
-  QVector<int> choosed_compo; 
+
   QTextStream qout(stdout);
   int i,n; 
 
@@ -179,6 +181,10 @@ void manager_t::copyTrame(QVector<int> choosed_compo)
   out.led2_orange= res[choosed_compo[REFEREE_DISPLAY]].led2_orange;
   out.led2_jaune = res[choosed_compo[REFEREE_DISPLAY]].led2_jaune;
 
+  out.mode_pwm =res[choosed_compo[REFEREE_DEPLACEMENT]].mode_pwm;
+  out.mode_vitesse =res[choosed_compo[REFEREE_DEPLACEMENT]].mode_vitesse;
+  out.mode_wp =res[choosed_compo[REFEREE_DEPLACEMENT]].mode_wp;
+
   out.nav_ctrl_update= res[choosed_compo[REFEREE_NAVIGATION]].nav_ctrl_update;
   out.new_position_x = res[choosed_compo[REFEREE_NAVIGATION]].new_position_x;
   out.new_position_y = res[choosed_compo[REFEREE_NAVIGATION]].new_position_y;
@@ -212,6 +218,10 @@ void manager_t::copyTrame(QVector<int> choosed_compo)
   out.right_gain_deriv=res[choosed_compo[REFEREE_GESTION]].right_gain_deriv;
   out.right_satur_sum_integ=res[choosed_compo[REFEREE_GESTION]].right_satur_sum_integ;
   out.right_thres_prop_only=res[choosed_compo[REFEREE_GESTION]].right_thres_prop_only;
+
+
+  out.consigne_speed_right=res[choosed_compo[REFEREE_GESTION]].consigne_speed_right;
+  out.consigne_speed_left=res[choosed_compo[REFEREE_GESTION]].consigne_speed_left;
 
   out.pic2_spare=res[choosed_compo[REFEREE_GESTION]].pic2_spare;
 

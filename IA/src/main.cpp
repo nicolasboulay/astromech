@@ -74,11 +74,13 @@ int main(int argc, char *argv[])
   //dev1 =
   video.which_one_is_the_good_one("Philips 740 webcam",video_device_360,video_device_eye);
   ///////////////////////////////////////////////////////////////
-
+  TRACE;
   task_rt_t mt(dev);
-
+  TRACE;
   if(use_gui){
+    TRACE;
     gui_t gui(&mt);
+    TRACE;
     cout << "Launch gui\n";
     qRegisterMetaType<QVector<unsigned char> >("QVector<unsigned char>");
     qRegisterMetaType<trame_out_t>("trame_out_t");

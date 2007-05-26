@@ -17,9 +17,10 @@ gui_t::gui_t(task_rt_t * mt,QWidget *parent)
   //
   // table view of the trame_out
   //
+  TRACE;
   QWidget *window_out = new QWidget;
   table_trame_out = new QTableWidget(12, 3, 0);
-
+  TRACE;
   table_trame_out->setRowCount(32);
   table_trame_out->setColumnCount(128);
   table_trame_out->show();
@@ -97,7 +98,6 @@ INSERT("cap");
 INSERT("match_ongoing");
 
 INSERT("start_time");
-INSERT("onesecond_in_tick");
 INSERT("elasped_time_s");
 INSERT("current_time_s");
 }
@@ -166,6 +166,9 @@ INSERT(1,"pic2_reset");
 INSERT(1,"led2_rouge");
 INSERT(1,"led2_orange");
 INSERT(1,"led2_jaune");
+INSERT(1,"mode_pwm");
+INSERT(1,"mode_vitesse");
+INSERT(1,"mode_wp");
 INSERT(1,"nav_ctrl_update");
 INSERT(1,"new_position_x");
 INSERT(1,"new_position_y");
@@ -227,7 +230,6 @@ INSERT(2,"bar_satur_sum_integ");
 INSERT(2,"bar_thres_prop_only");
 
 INSERT(2,"pic3_spare"); 
-
 }
 
 template <typename T_t>
@@ -254,7 +256,6 @@ UPDATE(cap);
 UPDATE(match_ongoing);
 
 UPDATE(start_time);
-UPDATE(onesecond_in_tick);
 UPDATE(elasped_time_s);
 UPDATE(current_time_s);
 }
@@ -331,6 +332,9 @@ UPDATE(pic2_reset);
 UPDATE(led2_rouge);
 UPDATE(led2_orange);
 UPDATE(led2_jaune);
+UPDATE(mode_pwm);
+UPDATE(mode_vitesse);
+UPDATE(mode_wp);
 UPDATE(nav_ctrl_update);
 UPDATE(new_position_x);
 UPDATE(new_position_y);

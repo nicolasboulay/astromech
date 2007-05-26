@@ -18,8 +18,7 @@ class internal_state_t {
   bool we_are_red;
 
   //gestion du temps
-  qulonglong start_time;
-  qulonglong onesecond_in_tick;
+  double start_time;
   double elasped_time_s;
   double current_time_s;
 
@@ -38,7 +37,7 @@ class internal_state_t {
     x(-1.0),y(-1.0),cap(-1.0),
     match_ongoing(false),
     we_are_blue(false), we_are_red(false),
-    start_time(0), onesecond_in_tick(0),elasped_time_s(0), current_time_s(0)
+    start_time(0), elasped_time_s(0), current_time_s(0)
 
     {}
 };

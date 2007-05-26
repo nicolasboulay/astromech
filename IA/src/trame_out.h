@@ -29,6 +29,9 @@ class trame_out_t
   int led2_rouge;
   int led2_orange;
   int led2_jaune;
+  int mode_pwm;
+  int mode_vitesse;
+  int mode_wp;
   int nav_ctrl_update;
   unsigned int new_position_x;
   unsigned int new_position_y;
@@ -50,7 +53,7 @@ class trame_out_t
   QVector<int> waypoint_ctrl_sens_rot;
   QVector<int> waypoint_ctrl_pwm;
 
-  int right_pwm_motor;
+  int right_pwm_motor; //unité nombre d'impulsion par boucle pid (-100;100)
   int left_pwm_motor;
 
   int left_gain_prop;
@@ -64,6 +67,9 @@ class trame_out_t
   int right_gain_deriv;
   int right_satur_sum_integ;
   int right_thres_prop_only;
+
+  int consigne_speed_right; //consigne de vitesse en mode vitesse
+  int consigne_speed_left;
 
   QVector<uint8_t> pic2_spare; 
 
