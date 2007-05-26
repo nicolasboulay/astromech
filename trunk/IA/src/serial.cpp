@@ -34,7 +34,7 @@ serial_t::serial_t(const char * device): frame(TAILLE_TRAME)
   
   newtio.c_lflag = 0; 
   
-  newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
+  newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused */
   newtio.c_cc[VMIN]     = TAILLE_TRAME;   /* blocking read until n chars received */
   
   tcflush(fdr, TCIFLUSH); // flush input buffer

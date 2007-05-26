@@ -9,7 +9,7 @@ class trame_binary_t : public QVector<unsigned char>
 {
   public :
   trame_binary_t(unsigned n=TAILLE_TRAME) : QVector<unsigned char>(n,0),num_trame(0) {};
-  int validation();
+  bool validation();
   void clear();
   void test();
   void gen_valid_trame();

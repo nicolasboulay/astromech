@@ -12,6 +12,8 @@ CImgDisplay * label_display=NULL;
 
 eye_processing_t::eye_processing_t() : h(120),w(160), before_match_picture(w,h,1,3)
 {
+  video_processing_t v;
+
   if(use_gui){
       raw_display   = new CImgDisplay(640,480,"raw !");
       filt_display   = new CImgDisplay(640,480,"Filtred");
@@ -94,8 +96,8 @@ void eye_processing_t::panier_processing(QVector<float> & proba_panier)
 
     //display raw from the webcam
     fps = raw_display->frames_per_second();
-    image_cur->draw_text(15,5,white,0,11,1,"%f fps !",fps).display(*raw_display);  
-    image_cur->display(*raw_display);
+    //image_cur->draw_text(15,5,white,0,11,1,"%f fps !",fps).display(*raw_display);  
+    //image_cur->display(*raw_display);
 
     res.display(*filt_display);
 
@@ -106,7 +108,7 @@ void eye_processing_t::panier_processing(QVector<float> & proba_panier)
       labels.draw_text((int)c.real(),(int)c.imag(),white,0,11,1,"%i",i);
     }
     
-    labels.display(*label_display);
+    //labels.display(*label_display);
 
 
     //simulate the button pressed

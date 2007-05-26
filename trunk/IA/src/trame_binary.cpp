@@ -109,15 +109,15 @@ int trame_binary_t::validation_paquet_pc_pic1()
 }
 
 
-int trame_binary_t::validation()
+bool trame_binary_t::validation()
 {
-  if(validation_trame() && 
-     validation_paquet_pic1() && 
-     validation_paquet_pic2() && 
+  if(validation_trame() || 
+     validation_paquet_pic1() || 
+     validation_paquet_pic2() || 
      validation_paquet_pic3())
-    return -1;
+    return false;
   
-  return 0;
+  return true;
 }
 
 void trame_binary_t::clear()

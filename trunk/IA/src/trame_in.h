@@ -50,6 +50,7 @@ class trame_in_t
   int      bar_error;
   unsigned bar_sum_integ;
   int      bar_pwm;
+  unsigned bar_ir_sensor;
   QVector<uint8_t> pic3_spare;
 
 

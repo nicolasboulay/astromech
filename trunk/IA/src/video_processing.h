@@ -1,3 +1,4 @@
+
 #ifndef VIDEO_PROCESSING_H
 #define VIDEO_PROCESSING_H
 #include "CImg.h"
@@ -8,7 +9,7 @@
 class video_processing_t 
 {
  public:
-
+  video_processing_t();
   inline CImg<unsigned char> & seuillage(CImg<unsigned char>&  img, 
 				  unsigned char seuil, int channel);
   inline CImg<unsigned char> & labellise(CImg<unsigned char>&  img, 
@@ -22,8 +23,18 @@ class video_processing_t
 		  int nb_object,
 		  QVector<complex<double> > & barys, 
 		  QVector<int> & weight );
+  inline bool eye_interrest_zone(int x, int y);
+
 };
 
+video_processing_t::video_processing_t()
+{
+  CImg<bool> eye(640,480,1,1);
+  bool color=true;
+  eye.draw_circle(eye.dimx()/2,eye.dimy()/2,20.0f,&color);
+  printf("toto\n");
+  //eye.display();
+}
 
 inline CImg<unsigned char> & video_processing_t::seuillage(CImg<unsigned char>&  img, 
 							   unsigned char seuil, 
@@ -40,7 +51,7 @@ inline CImg<unsigned char> & video_processing_t::seuillage(CImg<unsigned char>& 
 }
 
 
-// Labellise img. The object are separate by black fields (0)
+// Labellise img. blob are separate by black fields (0)
 // labels : 0 <- back fields
 // labels : 1 <- none proccessed pixel
 // labels : n <- objects
@@ -129,5 +140,11 @@ video_processing_t::give_barycentre(const CImg<unsigned char>&  labels,
   }
   //cout << endl;
 } 
+
+inline bool
+video_processing_t::eye_interrest_zone(int x, int y)
+{
+  
+}
 
 #endif

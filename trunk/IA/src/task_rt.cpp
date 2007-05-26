@@ -1,9 +1,11 @@
 #include <iostream>
+#include <unistd.h>  //usleep
 #include "manager.h"
 #include "trame_out.h"
 #include "trame_in.h"
 #include "serial.h"
 #include "task_rt.h"
+
 
 using namespace std;
 
@@ -108,9 +110,12 @@ void task_rt_t::run()
       // TODO:Il faudrait mettre qq choses dans l'état du robot
       in.deserialise(tbin);
       emit newTreeIn(in);
+    } else {
+      printf("TRAME POURRIS ?!\n");
     }
     tbin.dump_on_file("trame_from_pic.txt");
 
-    sleep(1);
+    usleep(200*1000);
   }
 }
+
